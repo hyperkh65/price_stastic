@@ -40,7 +40,7 @@ end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예
 data_query_button = st.sidebar.button("데이터 조회")
 
 # 애플 고딕 폰트 추가
-font_path = '/System/Library/Fonts/Supplemental/font/AppleGothic.ttf'
+font_path = '/System/Library/Fonts/Supplemental/AppleGothic.ttf'
 fm.fontManager.addfont(font_path)
 plt.rcParams['font.family'] = 'AppleGothic'
 
