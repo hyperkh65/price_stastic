@@ -41,7 +41,8 @@ end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예
 data_query_button = st.sidebar.button("데이터 조회")
 
 # 폰트 파일 경로 설정
-font_path = os.path.join(fm.get_data_path(), 'NanumGothicCoding.ttf')
+current_dir = os.getcwd()
+font_path = os.path.join(current_dir, 'NanumGothicCoding.ttf')
 fm.fontManager.addfont(font_path)
 plt.rcParams['font.family'] = 'NanumGothicCoding'  # 사용자 선택한 폰트 적용
 
