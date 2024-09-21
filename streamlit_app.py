@@ -3,7 +3,8 @@ import pandas as pd
 import PublicDataReader as pdr
 from datetime import datetime
 import json
-from io import BytesIO
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -148,17 +149,31 @@ if data_query_button:
         total_transactions = selected_data.shape[0]
         st.write(f"총 거래량: {total_transactions}")
 
+        # 매월 거래량 집계
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         st.write("매월 거래량")
-        st.dataframe(monthly_transactions)
+
+        # 월별 거래량 표로 표시
+        monthly_transactions['거래량'] = monthly_transactions['거래량'].astype(int)
+        st.dataframe(monthly_transactions.style.highlight_max(axis=0, color='lightgreen'))
+
+        # 월별 거래량 그래프
+        plt.figure(figsize=(10, 5))
+        sns.barplot(data=monthly_transactions, x='거래월', y='거래량', hue='거래년도', palette='Blues')
+        plt.title('매월 거래량')
+        plt.xlabel('거래월')
+        plt.ylabel('거래량')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        # 그래프 표시
+        st.pyplot(plt)
 
         # 지역별 거래량
         regional_transactions = selected_data['시군구'].value_counts().reset_index()
         regional_transactions.columns = ['시군구', '거래량']
         st.write("지역별 거래량")
-        st.dataframe(regional_transactions)
+        st.dataframe(regional_transactions.style.highlight_max(axis=0, color='lightgreen'))
 
-        # 여기에 추가 분석 및 시각화를 이어갈 수 있음.
-        
     else:
         st.error("모든 필드를 채워주세요.")
