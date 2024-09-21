@@ -192,14 +192,22 @@ if data_query_button:
         st.pyplot(plt)
         
         # 지역별 면적 대비 거래량 시각화
-        st.header("지역별 면적 대비 거래량 🌍")
-        plt.figure(figsize=(10, 6))
-        plt.bar(regional_area_counts.index, regional_area_counts.values, color='#FFC107', edgecolor='none')  # 색상 변경 및 아웃라인 제거
-        plt.xlabel('시군구', fontsize=14)
-        plt.ylabel('거래량', fontsize=14)
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-        st.pyplot(plt)
+        # 지역별 면적 대비 거래량
+        regional_area_counts = selected_data.groupby(['시군구']).size()
+        
+        # 데이터가 비어 있는 경우 처리
+        if regional_area_counts.empty:
+            st.write("지역별 거래량 데이터가 없습니다.")
+        else:
+            # 지역별 면적 대비 거래량 시각화
+            st.header("지역별 면적 대비 거래량 🌍")
+            plt.figure(figsize=(10, 6))
+            plt.bar(regional_area_counts.index, regional_area_counts.values, color='#FFC107', edgecolor='none')  # 색상 변경 및 아웃라인 제거
+            plt.xlabel('시군구', fontsize=14)
+            plt.ylabel('거래량', fontsize=14)
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            st.pyplot(plt)
         
         # 거래유형 분석 시각화
         st.header("거래유형 분석 🏠")
