@@ -4,7 +4,7 @@ import PublicDataReader as pdr
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
-from matplotlib import font_manager as fm
+import matplotlib.font_manager as fm
 import os
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
@@ -40,16 +40,10 @@ start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, �
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
 data_query_button = st.sidebar.button("데이터 조회")
 
-# 웹 폰트 파일 경로 설정 (현재 디렉토리에 포함된 폰트 파일)
-font_path = os.path.join(os.getcwd(), 'NanumGothicCoding.ttf')
-if os.path.isfile(font_path):
-    fm.fontManager.addfont(font_path)
-    plt.rcParams['font.family'] = 'Nanum Gothic'  # 그래프 폰트 설정
-else:
-    st.error("폰트 파일이 현재 디렉토리에 없습니다. 'NanumGothic.ttf' 파일을 추가하세요.")
-    plt.rcParams['font.family'] = 'Arial'  # 기본 폰트 설정
-
-plt.rcParams['axes.unicode_minus'] = False  # 음수 기호 표시
+# 폰트 파일 경로 설정
+font_path = os.path.join(fm.get_data_path(), 'NanumGothicCoding.ttf')
+fm.fontManager.addfont(font_path)
+plt.rcParams['font.family'] = 'NanumGothicCoding'  # 사용자 선택한 폰트 적용
 
 # 현재 날짜를 기준으로 기간 설정
 now = datetime.now()
