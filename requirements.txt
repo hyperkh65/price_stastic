@@ -3,3 +3,9 @@ pandas
 PublicDataReader
 datetime
 xlsxwriter
+numpy
+matplotlib
+seaborn
+geopandas
+plotly
+openpyxl
