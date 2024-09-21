@@ -48,8 +48,8 @@ if not end_year_month:
     end_year_month = now.strftime("%Y%m")
 
 # 진행 상태 변수
-status_text = f"검색 지역: {si_do_name}"
-st.sidebar.write(status_text)
+status_text = st.sidebar.empty()
+progress_bar = st.sidebar.progress(0)
 
 # 데이터를 조회하는 버튼을 추가하여, 사용자 입력 후에만 데이터 처리를 시작합니다.
 if st.button("데이터 조회"):
@@ -71,7 +71,8 @@ if st.button("데이터 조회"):
                     sigungu_code = sigungu["sigungu_code"]
                     sigungu_name = sigungu["sigungu_name"]
 
-                    st.write(f"Processing data for {sigungu_name} ({sigungu_code})")
+                    # 현재 처리 중인 지역을 업데이트
+                    status_text.text(f"현재 처리 중: {sigungu_name} ({sigungu_code})")
 
                     df = api.get_data(
                         property_type="아파트",
@@ -86,7 +87,8 @@ if st.button("데이터 조회"):
 
                     all_data = pd.concat([all_data, df], ignore_index=True)
                     processed_records += 1
-                    st.sidebar.write(f"진행율: {100 * processed_records / total_records:.2f}% ({processed_records}/{total_records})")
+                    progress_bar.progress(processed_records / total_records)
+
         else:
             si_do_code = converter.get_si_do_code(si_do_name)
             sigungu_list = converter.get_sigungu(si_do_code)
@@ -97,7 +99,8 @@ if st.button("데이터 조회"):
                 sigungu_code = sigungu["sigungu_code"]
                 sigungu_name = sigungu["sigungu_name"]
 
-                st.write(f"Processing data for {sigungu_name} ({sigungu_code})")
+                # 현재 처리 중인 지역을 업데이트
+                status_text.text(f"현재 처리 중: {sigungu_name} ({sigungu_code})")
 
                 df = api.get_data(
                     property_type="아파트",
@@ -112,7 +115,7 @@ if st.button("데이터 조회"):
 
                 all_data = pd.concat([all_data, df], ignore_index=True)
                 processed_records += 1
-                st.sidebar.write(f"진행율: {100 * processed_records / total_records:.2f}% ({processed_records}/{total_records})")
+                progress_bar.progress(processed_records / total_records)
 
         # 컬럼 이름 변환
         columns_to_select = {
