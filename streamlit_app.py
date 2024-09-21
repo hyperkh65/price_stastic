@@ -3,7 +3,6 @@ import pandas as pd
 import PublicDataReader as pdr
 from datetime import datetime
 import json
-from io import BytesIO
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -145,30 +144,5 @@ if st.sidebar.button("데이터 조회"):
         st.write("### 조회 결과")
         st.dataframe(selected_data)
 
-        # 데이터 다운로드 옵션 추가
-        st.write("### 데이터 다운로드")
-        excel_filename = f"{si_do_name}_{start_year_month}_{end_year_month}_매매.xlsx"
-        csv_filename = f"{si_do_name}_{start_year_month}_{end_year_month}_매매.csv"
-
-        # 엑셀 다운로드 (BytesIO로 메모리에 저장)
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            selected_data.to_excel(writer, index=False)
-        output.seek(0)
-
-        st.download_button(
-            label="엑셀로 다운로드",
-            data=output,
-            file_name=excel_filename,
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-
-        # CSV 다운로드
-        st.download_button(
-            label="CSV로 다운로드",
-            data=selected_data.to_csv(index=False),
-            file_name=csv_filename,
-            mime='text/csv'
-        )
     else:
         st.error("모든 필드를 채워주세요.")
