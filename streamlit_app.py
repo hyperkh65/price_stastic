@@ -4,10 +4,12 @@ import PublicDataReader as pdr
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
-from matplotlib import rc
+from matplotlib import font_manager
 
-# matplotlib에서 한글 폰트 적용
-rc('font', family='NanumGothic')  # 시스템에 설치된 'NanumGothic' 폰트 사용
+# 나눔 고딕 폰트 적용
+font_path = 'NanumGothicCoding.ttf'
+font_manager.fontManager.addfont(font_path)
+plt.rc('font', family='NanumGothic')
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -148,7 +150,6 @@ if data_query_button:
         st.dataframe(selected_data)
 
         # 분석 자료
-        st.write("### 분석 자료")
         total_transactions = selected_data.shape[0]
         st.write(f"총 거래량: {total_transactions}")
 
@@ -168,15 +169,16 @@ if data_query_button:
         st.pyplot(plt)
 
         # 지역별 거래량 (월별)
-        regional_monthly_transactions = selected_data.pivot_table(index='시군구', columns=['거래년도', '거래월'], values='거래금액', aggfunc='size', fill_value=0)
-        regional_monthly_transactions['Total'] = regional_monthly_transactions.sum(axis=1)
-        regional_monthly_transactions = regional_monthly_transactions.sort_values(by='Total', ascending=False)
+        regional_monthly_transactions = selected_data.groupby(['거래년도', '거래월', '시군구']).size().reset_index(name='거래량')
+        regional_monthly_pivot = regional_monthly_transactions.pivot_table(index='시군구', columns=['거래년도', '거래월'], values='거래량', fill_value=0)
+        regional_monthly_pivot['합계'] = regional_monthly_pivot.sum(axis=1)
+        regional_monthly_pivot = regional_monthly_pivot.sort_values(by='합계', ascending=False)
         st.write("지역별 거래량 (월별)")
-        st.dataframe(regional_monthly_transactions)
+        st.dataframe(regional_monthly_pivot)
 
         # 원형 그래프로 거래 비중 시각화
         plt.figure(figsize=(8, 8))
-        regional_summary = regional_monthly_transactions['Total']
+        regional_summary = selected_data['시군구'].value_counts()
         plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
         plt.title('Market Share by Region', fontsize=16)
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
