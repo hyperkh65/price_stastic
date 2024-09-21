@@ -9,7 +9,7 @@ from matplotlib import font_manager
 # 나눔 고딕 폰트 적용
 font_path = 'NanumGothicCoding.ttf'
 font_manager.fontManager.addfont(font_path)
-plt.rc('font', family='NanumGothic')
+plt.rcParams['font.family'] = 'NanumGothic'
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
