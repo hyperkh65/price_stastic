@@ -19,7 +19,7 @@ class DistrictConverter:
         self.districts = self.__read_district_file()
 
     def __read_district_file(self):
-        with open(json_file_path, 'r', encoding='utf-8') as f:
+        with open(json_file_path, 'r') as f:
             return json.loads(f.read())
 
     def get_si_do_code(self, si_do_name):
@@ -45,11 +45,8 @@ if not start_year_month:
 if not end_year_month:
     end_year_month = now.strftime("%Y%m")
 
-# 진행현황과 데이터 조회 버튼
-st.sidebar.header("진행현황")
-progress_text = st.sidebar.empty()
-
-if st.sidebar.button("데이터 조회"):
+# 데이터 조회 버튼 추가
+if st.button("데이터 조회"):
     if si_do_name and start_year_month and end_year_month:
         # DistrictConverter 인스턴스 생성
         converter = DistrictConverter()
@@ -65,8 +62,7 @@ if st.sidebar.button("데이터 조회"):
                     sigungu_code = sigungu["sigungu_code"]
                     sigungu_name = sigungu["sigungu_name"]
 
-                    # 진행현황 업데이트
-                    progress_text.text(f"현재 검색 중: {sigungu_name} ({sigungu_code})")
+                    st.write(f"Processing data for {sigungu_name} ({sigungu_code})")
 
                     df = api.get_data(
                         property_type="아파트",
@@ -88,8 +84,7 @@ if st.sidebar.button("데이터 조회"):
                 sigungu_code = sigungu["sigungu_code"]
                 sigungu_name = sigungu["sigungu_name"]
 
-                # 진행현황 업데이트
-                progress_text.text(f"현재 검색 중: {sigungu_name} ({sigungu_code})")
+                st.write(f"Processing data for {sigungu_name} ({sigungu_code})")
 
                 df = api.get_data(
                     property_type="아파트",
@@ -103,10 +98,6 @@ if st.sidebar.button("데이터 조회"):
                 df["si_do_name"] = si_do_name
 
                 all_data = pd.concat([all_data, df], ignore_index=True)
-
-        # 전용면적 처리
-        all_data = all_data[all_data['excluUseAr'].notna()]  # 결측치 제외
-        all_data['excluUseAr'] = all_data['excluUseAr'].astype(float)  # 소수점 처리
 
         # 컬럼 이름 변환
         columns_to_select = {
@@ -134,90 +125,78 @@ if st.sidebar.button("데이터 조회"):
 
         # 데이터 표로 표시
         st.write("### 조회 결과")
-        st.dataframe(selected_data.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
+        st.dataframe(selected_data)
 
-        # 분석 자료 생성
-        total_count = selected_data.shape[0]
+        # 총 거래량
+        total_transactions = selected_data.shape[0]
+        st.write(f"### 총 거래량: {total_transactions}")
+
+        # 매월 거래량
         monthly_count = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
-        region_count = selected_data['시군구'].value_counts().reset_index()
-        region_count.columns = ['시군구', '거래량']
-        transaction_type_count = selected_data['거래유형'].value_counts().reset_index()
-        transaction_type_count.columns = ['거래유형', '거래량']
-        area_bins = [0, 60, 85, 100, 120, 140, 160, float('inf')]
-        area_labels = ['60㎡ 이하', '60㎡~85㎡', '85㎡~100㎡', '100㎡~120㎡', '120㎡~140㎡', '140㎡~160㎡', '160㎡ 초과']
-        selected_data['평형대'] = pd.cut(selected_data['전용면적'], bins=area_bins, labels=area_labels, right=False)
-        area_count = selected_data['평형대'].value_counts().reset_index()
-        area_count.columns = ['평형대', '거래량']
-        amount_bins = [0, 300000000, 500000000, 700000000, 900000000, 1100000000, float('inf')]
-        amount_labels = ['300만원 이하', '300만원~500만원', '500만원~700만원', '700만원~900만원', '900만원~1100만원', '1100만원 초과']
-        selected_data['금액대'] = pd.cut(selected_data['거래금액'], bins=amount_bins, labels=amount_labels, right=False)
-        amount_count = selected_data['금액대'].value_counts().reset_index()
-        amount_count.columns = ['금액대', '거래량']
-
-        # 총 거래량 표시
-        st.write(f"### 총 거래량: {total_count}건")
-
-        # 매월 거래량 시각화
-        st.write("### 매월 거래량")
         plt.figure(figsize=(10, 5))
-        plt.plot(monthly_count['거래년도'].astype(str) + '-' + monthly_count['거래월'].astype(str), monthly_count['거래량'], marker='o')
+        plt.plot(monthly_count['거래월'].astype(str) + '-' + monthly_count['거래년도'].astype(str), monthly_count['거래량'], marker='o')
         plt.title('매월 거래량')
-        plt.xlabel('년도-월')
+        plt.xlabel('거래 월')
         plt.ylabel('거래량')
         plt.xticks(rotation=45)
         st.pyplot(plt)
+        st.dataframe(monthly_count.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
 
-        # 지역별 거래량 시각화
-        st.write("### 지역별 거래량")
+        # 지역별 거래량
+        region_count = selected_data['시군구'].value_counts().reset_index()
+        region_count.columns = ['시군구', '거래량']
         plt.figure(figsize=(10, 5))
-        plt.bar(region_count['시군구'], region_count['거래량'], color='skyblue')
+        plt.bar(region_count['시군구'], region_count['거래량'], color='lightblue')
         plt.title('지역별 거래량')
         plt.xlabel('시군구')
         plt.ylabel('거래량')
         plt.xticks(rotation=45)
         st.pyplot(plt)
+        st.dataframe(region_count.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
 
-        # 거래유형 분석 시각화
-        st.write("### 거래유형 분석")
-        plt.figure(figsize=(10, 5))
-        plt.pie(transaction_type_count['거래량'], labels=transaction_type_count['거래유형'], autopct='%1.1f%%', startangle=140)
-        plt.title('거래유형 비율')
+        # 거래유형 분석
+        transaction_type_count = selected_data['거래유형'].value_counts().reset_index()
+        transaction_type_count.columns = ['거래유형', '거래량']
+        plt.figure(figsize=(6, 6))
+        plt.pie(transaction_type_count['거래량'], labels=transaction_type_count['거래유형'], autopct='%1.1f%%')
+        plt.title('거래유형 분석')
         st.pyplot(plt)
+        st.dataframe(transaction_type_count.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
 
-        # 평형대별 거래량 시각화
-        st.write("### 평형대별 거래량")
+        # 평형대별 거래량
+        selected_data['평형대'] = pd.cut(selected_data['전용면적'], bins=[0, 60, 85, 100, 120, 150, 200], labels=['60㎡ 이하', '60~85㎡', '85~100㎡', '100~120㎡', '120~150㎡', '150㎡ 이상'], right=False)
+        area_count = selected_data['평형대'].value_counts().reset_index()
+        area_count.columns = ['평형대', '거래량']
         plt.figure(figsize=(10, 5))
         plt.bar(area_count['평형대'], area_count['거래량'], color='salmon')
         plt.title('평형대별 거래량')
         plt.xlabel('평형대')
         plt.ylabel('거래량')
-        plt.xticks(rotation=45)
         st.pyplot(plt)
+        st.dataframe(area_count.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
 
-        # 금액대별 거래량 시각화
-        st.write("### 금액대별 거래량")
-                plt.figure(figsize=(10, 5))
+        # 금액대별 거래량
+        selected_data['금액대'] = pd.cut(selected_data['거래금액'], bins=[0, 30000, 60000, 90000, 120000, 150000, 180000, 210000, 240000, 270000, 300000], labels=['30백만원 이하', '30~60백만원', '60~90백만원', '90~120백만원', '120~150백만원', '150~180백만원', '180~210백만원', '210~240백만원', '240~270백만원', '270~300백만원'], right=False)
+        amount_count = selected_data['금액대'].value_counts().reset_index()
+        amount_count.columns = ['금액대', '거래량']
+        plt.figure(figsize=(10, 5))
         plt.bar(amount_count['금액대'], amount_count['거래량'], color='lightgreen')
         plt.title('금액대별 거래량')
         plt.xlabel('금액대')
         plt.ylabel('거래량')
         plt.xticks(rotation=45)
         st.pyplot(plt)
-
-        # 분석 결과를 표로 표시
-        st.write("### 분석 자료")
-
-        st.write("#### 매월 거래량")
-        st.dataframe(monthly_count.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
-
-        st.write("#### 지역별 거래량")
-        st.dataframe(region_count.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
-
-        st.write("#### 거래유형 분석")
-        st.dataframe(transaction_type_count.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
-
-        st.write("#### 평형대별 거래량")
-        st.dataframe(area_count.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
-
-        st.write("#### 금액대별 거래량")
         st.dataframe(amount_count.style.set_table_attributes('style="color: black; background-color: #f5f5f5;"'))
+
+# 진행현황 고정탭 추가
+with st.sidebar:
+    st.write(f"현재 검색 지역: {si_do_name}")
+    progress = (all_data.shape[0] / total_transactions) * 100 if total_transactions
+        if total_transactions > 0 else 0
+    st.write(f"진행율: {progress:.2f}% ({all_data.shape[0]}/{total_transactions})")
+
+# 진행현황 표시
+st.sidebar.progress(progress)
+
+# UTF-8 인코딩 처리 (표시 관련)
+pd.options.display.encoding = 'utf-8'
