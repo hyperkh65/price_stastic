@@ -164,7 +164,7 @@ if data_query_button:
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         
         # 매월 거래량 시각화
-        st.header("매월 거래량 📅")
+        st.header("📅 매월 거래량")
         plt.figure(figsize=(10, 6))
         plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
         plt.xlabel('연도-월', fontsize=14)
@@ -183,7 +183,7 @@ if data_query_button:
         area_counts = selected_data['면적 범위'].value_counts().sort_index()
 
         # 전용면적 범위별 거래량 시각화
-        st.header("전용면적 범위별 거래량 📏")
+        st.header("📏 전용면적 범위별 거래량")
         plt.figure(figsize=(10, 6))
         plt.bar(area_counts.index, area_counts.values, color='lightgreen')
         plt.xlabel('면적 범위', fontsize=14)
@@ -195,11 +195,11 @@ if data_query_button:
         # 전용면적 범위별 거래량 표
         st.dataframe(area_counts.reset_index().rename(columns={'index': '면적 범위', 0: '거래량'}))
 
-        # 지역별 면적 대비 거래량
+        # 지역별 거래량
         regional_area_counts = selected_data.groupby(['시군구']).size()
         
-        # 지역별 면적 대비 거래량 시각화
-        st.header("지역별 면적 대비 거래량 🌍")
+        # 지역별 거래량 시각화
+        st.header("🌍 지역별 거래량")
         plt.figure(figsize=(10, 6))
         plt.bar(regional_area_counts.index, regional_area_counts.values, color='salmon')
         plt.xlabel('시군구', fontsize=14)
@@ -208,22 +208,53 @@ if data_query_button:
         plt.tight_layout()
         st.pyplot(plt)
         
-        # 지역별 면적 대비 거래량 표
+        # 지역별 거래량 표
         st.dataframe(regional_area_counts.reset_index().rename(columns={0: '거래량', '시군구': '시군구'}))
 
         # 거래유형 분석
         transaction_types = selected_data['거래유형'].value_counts()
         
         # 거래유형 분석 시각화
-        st.header("거래유형 분석 🏠")
+        st.header("🏠 거래유형 분석")
         plt.figure(figsize=(10, 6))
-        plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#ff9999','#66b3ff'])
-        plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['gold', 'lightcoral'])
+        plt.axis('equal')  # 원을 동그랗게 유지
+        plt.tight_layout()
         st.pyplot(plt)
-        
-        # 거래유형 분석 표
-        st.dataframe(transaction_types.reset_index().rename(columns={'index': '거래유형', 0: '거래량'}))
 
-        # 거래량 합계
-        total_volume = monthly_transactions['거래량'].sum()
-        st.write(f"거래량 합계: {total_volume} 🏆")
+        # 거래유형 분석 표
+        st.dataframe(transaction_types.reset_index().rename(columns={'index': '거래유형', '거래유형': '거래량'}))
+
+        # 거래 취소 분석
+        st.header("🚫 거래 취소 분석")
+        cancel_data = selected_data[selected_data["해제여부"] == "O"]
+        total_cancel_transactions = cancel_data.shape[0]
+        st.write(f"거래 취소된 건수: {total_cancel_transactions}")
+        
+        if total_cancel_transactions > 0:
+            # 취소된 거래의 비율
+            cancel_ratio = total_cancel_transactions / total_transactions * 100
+            st.write(f"전체 거래 중 취소된 비율: {cancel_ratio:.2f}%")
+
+            # 거래 취소 발생일 분석
+            cancel_day_counts = cancel_data['해제사유발생일'].value_counts().sort_index()
+            
+            # 거래 취소 발생일 시각화
+            st.header("📅 거래 취소 발생일 분석")
+            plt.figure(figsize=(10, 6))
+            plt.bar(cancel_day_counts.index, cancel_day_counts.values, color='tomato')
+            plt.xlabel('거래 취소 발생일', fontsize=14)
+            plt.ylabel('취소된 거래량', fontsize=14)
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            st.pyplot(plt)
+
+            # 거래 취소 발생일 표
+            st.dataframe(cancel_day_counts.reset_index().rename(columns={'index': '거래 취소 발생일', '해제사유발생일': '취소된 거래량'}))
+        else:
+            st.write("거래 취소된 데이터가 없습니다.")
+
+        # 데이터 다운로드 옵션 제공
+        st.header("💾 데이터 다운로드")
+        csv = selected_data.to_csv(index=False)
+        st.download_button(label="CSV 파일로 다운로드", data=csv, file_name="real_estate_data.csv", mime="text/csv")
