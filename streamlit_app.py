@@ -249,19 +249,29 @@ if data_query_button:
         # 거래량 합계
         total_volume = monthly_transactions['거래량'].sum()
         st.write(f"거래량 합계: {total_volume} 🏆")
-        # 결측치 확인
-        print(selected_data[['전용면적', '거래금액']].isnull().sum())
+        # selected_data 초기 상태 확인
+        print("초기 selected_data 개수:", selected_data.shape[0])
         
-        # 데이터 타입 확인 및 형변환
-        selected_data['전용면적'] = pd.to_numeric(selected_data['전용면적'], errors='coerce')
-        selected_data['거래금액'] = pd.to_numeric(selected_data['거래금액'], errors='coerce')
+        # 결측치 확인
+        print("전용면적 결측치 수:", selected_data['전용면적'].isnull().sum())
+        print("거래금액 결측치 수:", selected_data['거래금액'].isnull().sum())
+        
+        # 데이터 타입 확인
+        print("전용면적 데이터 타입:", selected_data['전용면적'].dtype)
+        print("거래금액 데이터 타입:", selected_data['거래금액'].dtype)
         
         # 결측치 제거
         selected_data = selected_data.dropna(subset=['전용면적', '거래금액'])
         
-        # 면적당 거래금액 계산
-        selected_data['면적당 거래금액'] = selected_data['거래금액'] / selected_data['전용면적']
+        # 결측치 제거 후 상태 확인
+        print("결측치 제거 후 selected_data 개수:", selected_data.shape[0])
         
+        # 면적당 거래금액 계산
+        if not selected_data.empty:
+            selected_data['면적당 거래금액'] = selected_data['거래금액'] / selected_data['전용면적']
+            print(selected_data[['전용면적', '거래금액', '면적당 거래금액']])
+        else:
+            print("결과 데이터가 없습니다.")        
         # 결과 확인
         print(selected_data[['전용면적', '거래금액', '면적당 거래금액']])
            
