@@ -181,22 +181,8 @@ if data_query_button:
         # 지역별 거래량
         regional_summary = selected_data.groupby('시군구').size().reset_index(name='거래량')
         regional_summary['총계'] = regional_summary['거래량'].sum()  # 총계 열 추가
-        
-        # 지역별 거래량 시각화
-        st.header("지역별 거래량 🌍")
-        plt.figure(figsize=(10, 6))
-        plt.bar(regional_summary['시군구'], regional_summary['거래량'], color='salmon', edgecolor='none')
-        plt.xlabel('시군구', fontsize=14)
-        plt.ylabel('거래량', fontsize=14)
-        plt.xticks(rotation=45)
-        plt.tight_layout()
+    
 
-
-
-
-
-
-        
         
         # 전용면적 범위별 거래량
         bins = [0, 80, 100, 120, 140, float('inf')]
