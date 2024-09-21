@@ -250,6 +250,9 @@ if data_query_button:
         total_volume = monthly_transactions['거래량'].sum()
         st.write(f"거래량 합계: {total_volume} 🏆")
 
+       # 결측치 제거
+        selected_data.dropna(subset=['거래금액', '전용면적'], inplace=True)
+        
         # 면적당 거래금액 계산
         selected_data['면적당 거래금액'] = selected_data['거래금액'] / selected_data['전용면적']
         
