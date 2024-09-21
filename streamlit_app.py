@@ -83,6 +83,12 @@ if st.button("데이터 조회"):
 # 진행률 및 상태 표시
 st.sidebar.markdown("## 진행 상태")
 st.sidebar.write(f"현재 검토 지역: {si_do_name}")
-st.sidebar.write(f"진행율: {100 * (end_date - start_date).days / (datetime.now() - start_date).days:.2f}%")
+if start_date < datetime.now().date():
+    elapsed_days = (datetime.now().date() - start_date).days
+    total_days = (end_date - start_date).days
+    progress = 100 * (elapsed_days / total_days) if total_days > 0 else 0
+else:
+    progress = 0
+st.sidebar.write(f"진행율: {progress:.2f}%")
 st.sidebar.write("진행한 검사 수: 50")
 st.sidebar.write("남은 검사 수: 10")
