@@ -4,6 +4,12 @@ import PublicDataReader as pdr
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
+from matplotlib import font_manager, rc
+
+# 구글에서 제공하는 기본 한글 폰트 적용
+font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
+font_manager.fontManager.addfont(font_path)
+rc('font', family='NanumGothic')
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -117,24 +123,24 @@ if data_query_button:
 
         # 컬럼 이름 변환
         columns_to_select = {
-            "si_do_name": "Si/Do",
-            "sigungu_name": "District",
-            "umdNm": "LegalDong",
-            "roadNm": "RoadName",
-            "bonbun": "LandNum",
-            "aptNm": "Apartment",
-            "buildYear": "BuildYear",
-            "excluUseAr": "Area_m2",
-            "floor": "Floor",
-            "dealYear": "Year",
-            "dealMonth": "Month",
-            "dealDay": "Day",
-            "dealAmount": "Amount",
-            "aptSeq": "SeqNum",
-            "dealingGbn": "TradeType",
-            "estateAgentSggNm": "AgentLocation",
-            "cdealType": "CancelStatus",
-            "cdealDay": "CancelDate"
+            "si_do_name": "시도",
+            "sigungu_name": "시군구",
+            "umdNm": "법정동",
+            "roadNm": "도로명",
+            "bonbun": "지번",
+            "aptNm": "아파트",
+            "buildYear": "건축년도",
+            "excluUseAr": "전용면적",
+            "floor": "층",
+            "dealYear": "거래년도",
+            "dealMonth": "거래월",
+            "dealDay": "거래일",
+            "dealAmount": "거래금액",
+            "aptSeq": "일련번호",
+            "dealingGbn": "거래유형",
+            "estateAgentSggNm": "중개사소재지",
+            "cdealType": "해제여부",
+            "cdealDay": "해제사유발생일"
         }
 
         selected_data = all_data.rename(columns=columns_to_select)[list(columns_to_select.values())]
@@ -149,13 +155,13 @@ if data_query_button:
         st.write(f"총 거래량: {total_transactions}")
 
         # 매월 거래량
-        monthly_transactions = selected_data.groupby(['Year', 'Month']).size().reset_index(name='Transactions')
+        monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         st.write("매월 거래량")
         st.dataframe(monthly_transactions)
 
         # 매월 거래량 시각화
         plt.figure(figsize=(10, 6))
-        plt.bar(monthly_transactions['Year'].astype(str) + '-' + monthly_transactions['Month'].astype(str), monthly_transactions['Transactions'], color='skyblue')
+        plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
         plt.title('Monthly Transactions', fontsize=16)
         plt.xlabel('Year-Month', fontsize=14)
         plt.ylabel('Transactions', fontsize=14)
@@ -164,13 +170,15 @@ if data_query_button:
         st.pyplot(plt)
 
         # 지역별 거래량 (월별)
-        regional_monthly_transactions = selected_data.groupby(['Year', 'Month', 'District']).size().reset_index(name='Transactions')
+        regional_monthly_transactions = selected_data.pivot_table(index='시군구', columns=['거래년도', '거래월'], values='거래금액', aggfunc='size', fill_value=0)
+        regional_monthly_transactions['Total'] = regional_monthly_transactions.sum(axis=1)
+        regional_monthly_transactions = regional_monthly_transactions.sort_values(by='Total', ascending=False)
         st.write("지역별 거래량 (월별)")
         st.dataframe(regional_monthly_transactions)
 
         # 원형 그래프로 거래 비중 시각화
         plt.figure(figsize=(8, 8))
-        regional_summary = selected_data['District'].value_counts()
+        regional_summary = regional_monthly_transactions['Total']
         plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
         plt.title('Market Share by Region', fontsize=16)
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
