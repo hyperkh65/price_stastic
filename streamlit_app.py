@@ -156,6 +156,10 @@ if data_query_button:
         total_transactions = selected_data.shape[0]
         st.write(f"총 거래량: {total_transactions}")
 
+        # 전용면적 데이터 타입 변환 및 결측치 처리
+        selected_data['전용면적'] = pd.to_numeric(selected_data['전용면적'], errors='coerce')
+        selected_data.dropna(subset=['전용면적'], inplace=True)  # 결측치 삭제
+
         # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         
@@ -205,7 +209,21 @@ if data_query_button:
         st.pyplot(plt)
         
         # 지역별 면적 대비 거래량 표
-        st.dataframe(regional_area_counts.reset_index().rename(columns={0: '거래량'}))
+        st.dataframe(regional_area_counts.reset_index().rename(columns={0: '거래량', '시군구': '시군구'}))
 
-    else:
-        st.error("모든 필드를 채워주세요.")
+        # 거래유형 분석
+        transaction_types = selected_data['거래유형'].value_counts()
+        
+        # 거래유형 분석 시각화
+        st.header("거래유형 분석 🏠")
+        plt.figure(figsize=(10, 6))
+        plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#ff9999','#66b3ff'])
+        plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        st.pyplot(plt)
+        
+        # 거래유형 분석 표
+        st.dataframe(transaction_types.reset_index().rename(columns={'index': '거래유형', 0: '거래량'}))
+
+        # 거래량 합계
+        total_volume = monthly_transactions['거래량'].sum()
+        st.write(f"거래량 합계: {total_volume} 🏆")
