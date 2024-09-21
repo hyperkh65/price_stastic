@@ -4,6 +4,8 @@ import PublicDataReader as pdr
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
+from matplotlib import font_manager as fm
+import os
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -38,18 +40,11 @@ start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, �
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
 data_query_button = st.sidebar.button("데이터 조회")
 
-# 웹 폰트 설정
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap');
-    body {
-        font-family: 'Nanum Gothic', sans-serif;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# 웹 폰트 파일 경로 설정
+font_path = os.path.join(fm.getcwd(), 'NanumGothic.ttf')
+fm.fontManager.addfont(font_path)
+plt.rcParams['font.family'] = 'Nanum Gothic'  # 그래프 폰트 설정
+plt.rcParams['axes.unicode_minus'] = False  # 음수 기호 표시
 
 # 현재 날짜를 기준으로 기간 설정
 now = datetime.now()
@@ -174,8 +169,6 @@ if data_query_button:
         plt.ylabel('Transactions', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.rcParams['font.family'] = 'Nanum Gothic'  # 그래프 폰트 설정
-        plt.rcParams['axes.unicode_minus'] = False  # 음수 기호 표시
         st.pyplot(plt)
 
         # 지역별 거래량 (월별)
@@ -189,8 +182,6 @@ if data_query_button:
         plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
         plt.title('Market Share by Region', fontsize=16)
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        plt.rcParams['font.family'] = 'Nanum Gothic'  # 그래프 폰트 설정
-        plt.rcParams['axes.unicode_minus'] = False  # 음수 기호 표시
         st.pyplot(plt)
 
     else:
