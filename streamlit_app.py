@@ -4,7 +4,6 @@ import PublicDataReader as pdr
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -149,35 +148,28 @@ if data_query_button:
         total_transactions = selected_data.shape[0]
         st.write(f"총 거래량: {total_transactions}")
 
-        # 매월 거래량 집계
+        # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         st.write("매월 거래량")
+        st.dataframe(monthly_transactions)
 
-        # 월별 거래량 표로 표시
-        monthly_transactions['거래량'] = monthly_transactions['거래량'].astype(int)
-        st.dataframe(monthly_transactions.style.highlight_max(axis=0, color='lightgreen'))
-
-        # 월별 거래량 그래프
-        plt.figure(figsize=(12, 6))
-        sns.set_theme(style="whitegrid")
-        sns.barplot(data=monthly_transactions, x='거래월', y='거래량', hue='거래년도', palette='Blues', alpha=0.8)
-        
-        # 한글 글꼴 설정
-        plt.title('매월 거래량', fontsize=16, fontfamily='sans-serif')
-        plt.xlabel('거래월', fontsize=14, fontfamily='sans-serif')
-        plt.ylabel('거래량', fontsize=14, fontfamily='sans-serif')
+        # 매월 거래량 시각화
+        plt.figure(figsize=(10, 6))
+        plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
+        plt.title('Monthly Transactions', fontsize=16)
+        plt.xlabel('Year-Month', fontsize=14)
+        plt.ylabel('Transactions', fontsize=14)
         plt.xticks(rotation=45)
-        plt.legend(title='거래년도', fontsize=12)
         plt.tight_layout()
 
-        # 그래프 표시
+        # 그래프 출력
         st.pyplot(plt)
 
         # 지역별 거래량
         regional_transactions = selected_data['시군구'].value_counts().reset_index()
         regional_transactions.columns = ['시군구', '거래량']
         st.write("지역별 거래량")
-        st.dataframe(regional_transactions.style.highlight_max(axis=0, color='lightgreen'))
+        st.dataframe(regional_transactions)
 
     else:
         st.error("모든 필드를 채워주세요.")
