@@ -158,12 +158,14 @@ if data_query_button:
         st.dataframe(monthly_transactions.style.highlight_max(axis=0, color='lightgreen'))
 
         # 월별 거래량 그래프
-        plt.figure(figsize=(10, 5))
-        sns.barplot(data=monthly_transactions, x='거래월', y='거래량', hue='거래년도', palette='Blues')
-        plt.title('매월 거래량')
-        plt.xlabel('거래월')
-        plt.ylabel('거래량')
+        plt.figure(figsize=(12, 6))
+        sns.set_theme(style="whitegrid")
+        sns.barplot(data=monthly_transactions, x='거래월', y='거래량', hue='거래년도', palette='Blues', alpha=0.8)
+        plt.title('매월 거래량', fontsize=16)
+        plt.xlabel('거래월', fontsize=14)
+        plt.ylabel('거래량', fontsize=14)
         plt.xticks(rotation=45)
+        plt.legend(title='거래년도', fontsize=12)
         plt.tight_layout()
 
         # 그래프 표시
