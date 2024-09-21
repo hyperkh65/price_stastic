@@ -175,6 +175,12 @@ if data_query_button:
         plt.tight_layout()
         st.pyplot(plt)
         
+        # 전용면적 범위별 거래량
+        bins = [0, 80, 100, 120, 140, float('inf')]
+        labels = ['0~80', '80~100', '100~120', '120~140', '140 이상']
+        selected_data['면적 범위'] = pd.cut(selected_data['전용면적'], bins=bins, labels=labels, right=False)
+        area_counts = selected_data['면적 범위'].value_counts().sort_index()
+        
         # 전용면적 범위별 거래량 시각화
         st.header("전용면적 범위별 거래량 📏")
         plt.figure(figsize=(10, 6))
