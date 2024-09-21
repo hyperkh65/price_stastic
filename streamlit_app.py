@@ -40,19 +40,19 @@ si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특�
 start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "")
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
 
-# 현재 날짜를 기준으로 기간 설정
-now = datetime.now()
-if not start_year_month:
-    start_year_month = f"{now.year}01"
-if not end_year_month:
-    end_year_month = now.strftime("%Y%m")
+# 데이터 조회 버튼을 왼쪽 고정탭에 추가
+if st.sidebar.button("데이터 조회"):
+    # 현재 날짜를 기준으로 기간 설정
+    now = datetime.now()
+    if not start_year_month:
+        start_year_month = f"{now.year}01"
+    if not end_year_month:
+        end_year_month = now.strftime("%Y%m")
 
-# 진행 상태 변수
-status_text = st.sidebar.empty()
-progress_bar = st.sidebar.progress(0)
+    # 진행 상태 변수
+    status_text = st.sidebar.empty()
+    progress_bar = st.sidebar.progress(0)
 
-# 데이터를 조회하는 버튼을 추가하여, 사용자 입력 후에만 데이터 처리를 시작합니다.
-if st.button("데이터 조회"):
     if si_do_name and start_year_month and end_year_month:
         # DistrictConverter 인스턴스 생성
         converter = DistrictConverter()
