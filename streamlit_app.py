@@ -166,58 +166,39 @@ if data_query_button:
         # 매월 거래량 시각화
         st.header("매월 거래량 📅")
         plt.figure(figsize=(10, 6))
-        plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
+        plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str),
+                monthly_transactions['거래량'],
+                color='#4CAF50', edgecolor='none')  # 색상 변경 및 아웃라인 제거
         plt.xlabel('연도-월', fontsize=14)
         plt.ylabel('거래량', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(plt)
         
-        # 매월 거래량 표
-        st.dataframe(monthly_transactions)
-
-        # 전용면적 범위별 거래량
-        bins = [0, 80, 100, 120, 140, float('inf')]
-        labels = ['0~80', '80~100', '100~120', '120~140', '140 이상']
-        selected_data['면적 범위'] = pd.cut(selected_data['전용면적'], bins=bins, labels=labels, right=False)
-        area_counts = selected_data['면적 범위'].value_counts().sort_index()
-
         # 전용면적 범위별 거래량 시각화
         st.header("전용면적 범위별 거래량 📏")
         plt.figure(figsize=(10, 6))
-        plt.bar(area_counts.index, area_counts.values, color='lightgreen')
+        plt.bar(area_counts.index, area_counts.values, color='#2196F3', edgecolor='none')  # 색상 변경 및 아웃라인 제거
         plt.xlabel('면적 범위', fontsize=14)
         plt.ylabel('거래량', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(plt)
         
-        # 전용면적 범위별 거래량 표
-        st.dataframe(area_counts.reset_index().rename(columns={'index': '면적 범위', 0: '거래량'}))
-
-        # 지역별 면적 대비 거래량
-        regional_area_counts = selected_data.groupby(['시군구']).size()
-        
         # 지역별 면적 대비 거래량 시각화
         st.header("지역별 면적 대비 거래량 🌍")
         plt.figure(figsize=(10, 6))
-        plt.bar(regional_area_counts.index, regional_area_counts.values, color='salmon')
+        plt.bar(regional_area_counts.index, regional_area_counts.values, color='#FFC107', edgecolor='none')  # 색상 변경 및 아웃라인 제거
         plt.xlabel('시군구', fontsize=14)
         plt.ylabel('거래량', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(plt)
         
-        # 지역별 면적 대비 거래량 표
-        st.dataframe(regional_area_counts.reset_index().rename(columns={0: '거래량', '시군구': '시군구'}))
-
-        # 거래유형 분석
-        transaction_types = selected_data['거래유형'].value_counts()
-        
         # 거래유형 분석 시각화
         st.header("거래유형 분석 🏠")
         plt.figure(figsize=(10, 6))
-        plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#ff9999','#66b3ff'])
+        plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#FF5733', '#33FF57'])  # 색상 변경
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         st.pyplot(plt)
         
