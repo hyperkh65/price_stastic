@@ -183,7 +183,6 @@ if data_query_button:
         regional_summary['총계'] = regional_summary['거래량'].sum()  # 총계 열 추가
     
 
-        
         # 전용면적 범위별 거래량
         bins = [0, 80, 100, 120, 140, float('inf')]
         labels = ['0~80', '80~100', '100~120', '120~140', '140 이상']
@@ -200,7 +199,12 @@ if data_query_button:
         plt.tight_layout()
         st.pyplot(plt)
         
-        # 지역별 면적 대비 거래량 시각화
+        # 전용면적 범위별 거래량 표 추가
+        area_summary = area_counts.reset_index()
+        area_summary.columns = ['면적 범위', '거래량']
+        area_summary['총계'] = area_summary['거래량'].sum()  # 총계 열 추가
+        st.dataframe(area_summary)
+        
         # 지역별 면적 대비 거래량
         regional_area_counts = selected_data.groupby(['시군구']).size()
         
@@ -217,6 +221,13 @@ if data_query_button:
             plt.xticks(rotation=45)
             plt.tight_layout()
             st.pyplot(plt)
+        
+            # 지역별 면적 대비 거래량 표 추가
+            regional_summary = regional_area_counts.reset_index()
+            regional_summary.columns = ['시군구', '거래량']
+            regional_summary['총계'] = regional_summary['거래량'].sum()  # 총계 열 추가
+            st.dataframe(regional_summary)
+        
         
         # 거래유형 분석
             transaction_types = selected_data['거래유형'].value_counts()
