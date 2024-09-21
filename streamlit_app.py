@@ -4,7 +4,6 @@ import PublicDataReader as pdr
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
-from io import BytesIO
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -33,11 +32,11 @@ class DistrictConverter:
                 return district["sigungu"]
 
 # 사용자 입력 받기
-st.title("Real Estate Data Analysis")
-si_do_name = st.sidebar.text_input("Enter city/province (e.g., Seoul) or 'All'", "All")
-start_year_month = st.sidebar.text_input("Start Year-Month (YYYYMM format, e.g., 202301)", "")
-end_year_month = st.sidebar.text_input("End Year-Month (YYYYMM format, e.g., 202312)", "")
-data_query_button = st.sidebar.button("Query Data")
+st.title("부동산 데이터 조회")
+si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "전국")
+start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "")
+end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
+data_query_button = st.sidebar.button("데이터 조회")
 
 # 현재 날짜를 기준으로 기간 설정
 now = datetime.now()
@@ -58,7 +57,7 @@ if data_query_button:
         # 데이터 수집 및 처리
         all_data = pd.DataFrame()
 
-        if si_do_name == "All":
+        if si_do_name == "전국":
             total_count = sum(len(district["sigungu"]) for district in converter.districts)
             processed_count = 0
 
@@ -72,12 +71,12 @@ if data_query_button:
 
                     # 현재 진행 상황 업데이트
                     processed_count += 1
-                    progress_text.text(f"Progress: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
-                    status_text.text(f"Processing: {sigungu_name} ({sigungu_code})")
+                    progress_text.text(f"진행율: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
+                    status_text.text(f"현재 처리 중: {sigungu_name} ({sigungu_code})")
 
                     df = api.get_data(
-                        property_type="Apartment",
-                        trade_type="Sale",
+                        property_type="아파트",
+                        trade_type="매매",
                         sigungu_code=sigungu_code,
                         start_year_month=start_year_month,
                         end_year_month=end_year_month
@@ -100,12 +99,12 @@ if data_query_button:
 
                 # 현재 진행 상황 업데이트
                 processed_count += 1
-                progress_text.text(f"Progress: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
-                status_text.text(f"Processing: {sigungu_name} ({sigungu_code})")
+                progress_text.text(f"진행율: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
+                status_text.text(f"현재 처리 중: {sigungu_name} ({sigungu_code})")
 
                 df = api.get_data(
-                    property_type="Apartment",
-                    trade_type="Sale",
+                    property_type="아파트",
+                    trade_type="매매",
                     sigungu_code=sigungu_code,
                     start_year_month=start_year_month,
                     end_year_month=end_year_month
@@ -118,62 +117,64 @@ if data_query_button:
 
         # 컬럼 이름 변환
         columns_to_select = {
-            "si_do_name": "City/Province",
+            "si_do_name": "Si/Do",
             "sigungu_name": "District",
-            "umdNm": "LegalTown",
-            "roadNm": "Street",
-            "bonbun": "LandNumber",
+            "umdNm": "LegalDong",
+            "roadNm": "RoadName",
+            "bonbun": "LandNum",
             "aptNm": "Apartment",
             "buildYear": "BuildYear",
-            "excluUseAr": "Area(m²)",
+            "excluUseAr": "Area_m2",
             "floor": "Floor",
             "dealYear": "Year",
             "dealMonth": "Month",
             "dealDay": "Day",
-            "dealAmount": "Price",
-            "aptSeq": "Sequence",
-            "dealingGbn": "TransactionType",
+            "dealAmount": "Amount",
+            "aptSeq": "SeqNum",
+            "dealingGbn": "TradeType",
             "estateAgentSggNm": "AgentLocation",
-            "cdealType": "Cancellation",
-            "cdealDay": "CancellationDate"
+            "cdealType": "CancelStatus",
+            "cdealDay": "CancelDate"
         }
 
         selected_data = all_data.rename(columns=columns_to_select)[list(columns_to_select.values())]
 
         # 데이터 표로 표시
-        st.write("### Query Results")
+        st.write("### 조회 결과")
         st.dataframe(selected_data)
 
         # 분석 자료
-        st.write("### Analysis Data")
+        st.write("### 분석 자료")
         total_transactions = selected_data.shape[0]
-        st.write(f"Total Transactions: {total_transactions}")
+        st.write(f"총 거래량: {total_transactions}")
 
         # 매월 거래량
         monthly_transactions = selected_data.groupby(['Year', 'Month']).size().reset_index(name='Transactions')
-        st.write("Monthly Transactions")
+        st.write("매월 거래량")
         st.dataframe(monthly_transactions)
-        fig, ax = plt.subplots()
-        ax.plot(monthly_transactions['Year'].astype(str) + '-' + monthly_transactions['Month'].astype(str), monthly_transactions['Transactions'], marker='o')
-        ax.set_xlabel("Year-Month")
-        ax.set_ylabel("Number of Transactions")
-        ax.set_title("Monthly Transactions")
+
+        # 매월 거래량 시각화
+        plt.figure(figsize=(10, 6))
+        plt.bar(monthly_transactions['Year'].astype(str) + '-' + monthly_transactions['Month'].astype(str), monthly_transactions['Transactions'], color='skyblue')
+        plt.title('Monthly Transactions', fontsize=16)
+        plt.xlabel('Year-Month', fontsize=14)
+        plt.ylabel('Transactions', fontsize=14)
         plt.xticks(rotation=45)
-        st.pyplot(fig)
+        plt.tight_layout()
+        st.pyplot(plt)
 
-        # 지역별 거래량
-        regional_transactions = selected_data.groupby(['Year', 'Month', 'District']).size().reset_index(name='Transactions')
-        st.write("Monthly Regional Transactions")
-        st.dataframe(regional_transactions)
+        # 지역별 거래량 (월별)
+        regional_monthly_transactions = selected_data.groupby(['Year', 'Month', 'District']).size().reset_index(name='Transactions')
+        st.write("지역별 거래량 (월별)")
+        st.dataframe(regional_monthly_transactions)
 
-        # 지역별 거래 비중
-        region_summary = selected_data['District'].value_counts(normalize=True).reset_index()
-        region_summary.columns = ['District', 'Proportion']
-        st.write("Regional Transaction Proportion")
-        fig, ax = plt.subplots()
-        ax.pie(region_summary['Proportion'], labels=region_summary['District'], autopct='%1.1f%%', startangle=90)
-        ax.axis('equal')
-        st.pyplot(fig)
+        # 원형 그래프로 거래 비중 시각화
+        plt.figure(figsize=(8, 8))
+        regional_summary = selected_data['District'].value_counts()
+        plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
+        plt.title('Market Share by Region', fontsize=16)
+        plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        st.pyplot(plt)
 
     else:
-        st.error("Please fill in all fields.")
+        st.error("모든 필드를 채워주세요.")
