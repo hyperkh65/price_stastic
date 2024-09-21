@@ -180,7 +180,7 @@ if data_query_button:
         plt.figure(figsize=(8, 8))
         regional_summary = selected_data['시군구'].value_counts()
         plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
-        plt.title('Market Share by Region', fontsize=16)
+        plt.title('지역별 거래 비중', fontsize=16)  # 제목을 한글로 설정
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         st.pyplot(plt)
 
