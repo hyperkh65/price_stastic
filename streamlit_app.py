@@ -259,6 +259,6 @@ if data_query_button:
         top_apartments = popular_apartments.loc[popular_apartments.groupby('법정동')['거래량'].idxmax()]
         
         # 결과를 표로 표시
-        st.write("법정동별 인기 아파트")
+        st.header("법정동별 거래 빈도가 높은 아파트 🌍")
         st.dataframe(top_apartments)
            
