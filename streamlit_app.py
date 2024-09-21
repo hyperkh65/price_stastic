@@ -6,7 +6,6 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
 json_file_path = "district.json"
@@ -43,6 +42,7 @@ data_query_button = st.sidebar.button("데이터 조회")
 # 시스템에 설치된 폰트 목록 추출
 fonts = fm.findSystemFonts(fontpaths=None)
 font_names = [fm.FontProperties(fname=font).get_name() for font in fonts]
+font_names.append('AppleGothic')  # AppleGothic 추가
 selected_font = st.sidebar.selectbox("폰트를 선택하세요:", font_names)
 
 # 현재 날짜를 기준으로 기간 설정
