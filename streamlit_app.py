@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+import os
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -40,7 +41,7 @@ end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예
 data_query_button = st.sidebar.button("데이터 조회")
 
 # 사용자 정의 폰트 설정
-font_path = fm.get_data_path() + '/NanumGothicCoding.ttf'
+font_path = os.path.join(os.getcwd(), 'NanumGothicCoding.ttf')
 fm.fontManager.addfont(font_path)
 plt.rcParams['font.family'] = 'NanumGothicCoding'
 
