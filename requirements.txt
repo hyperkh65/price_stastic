@@ -5,3 +5,7 @@ seaborn
 folium
 openpyxl  # Excel 파일을 읽고 쓰기 위해 필요
 xlsxwriter  # Excel 파일 쓰기 위해 필요
+PublicDataReader
+matplotlib
+seaborn
+xlsxwriter
