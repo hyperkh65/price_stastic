@@ -209,12 +209,19 @@ if data_query_button:
             plt.tight_layout()
             st.pyplot(plt)
         
-        # 거래유형 분석 시각화
-        st.header("거래유형 분석 🏠")
-        plt.figure(figsize=(10, 6))
-        plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#FF5733', '#33FF57'])  # 색상 변경
-        plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        st.pyplot(plt)
+        # 거래유형 분석
+            transaction_types = selected_data['거래유형'].value_counts()
+            
+            # 데이터가 비어 있는 경우 처리
+            if transaction_types.empty:
+                st.write("거래유형 데이터가 없습니다.")
+            else:
+                # 거래유형 분석 시각화
+                st.header("거래유형 분석 🏠")
+                plt.figure(figsize=(10, 6))
+                plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#FF5733', '#33FF57'])  # 색상 변경
+                plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+                st.pyplot(plt)
         
         # 거래유형 분석 표
         st.dataframe(transaction_types.reset_index().rename(columns={'index': '거래유형', 0: '거래량'}))
