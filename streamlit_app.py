@@ -152,52 +152,60 @@ if data_query_button:
         st.dataframe(selected_data)
 
         # 분석 자료
-        st.write("### 분석 자료")
         total_transactions = selected_data.shape[0]
         st.write(f"총 거래량: {total_transactions}")
 
         # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
-        st.write("매월 거래량")
-        st.dataframe(monthly_transactions)
 
         # 매월 거래량 시각화
         plt.figure(figsize=(10, 6))
         plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
-        plt.title('Monthly Transactions', fontsize=16)
-        plt.xlabel('Year-Month', fontsize=14)
-        plt.ylabel('Transactions', fontsize=14)
+        plt.title('매월 거래량', fontsize=16)
+        plt.xlabel('년-월', fontsize=14)
+        plt.ylabel('거래량', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(plt)
 
+        # 매월 거래량 표로 표시
+        monthly_transactions['합계'] = monthly_transactions['거래량'].sum()
+        st.write("매월 거래량")
+        st.dataframe(monthly_transactions)
+
         # 지역별 거래량 (월별)
         regional_monthly_transactions = selected_data.groupby(['거래년도', '거래월', '시군구']).size().reset_index(name='거래량')
-        st.write("지역별 거래량 (월별)")
-        st.dataframe(regional_monthly_transactions)
-
+        
         # 원형 그래프로 거래 비중 시각화
         plt.figure(figsize=(8, 8))
         regional_summary = selected_data['시군구'].value_counts()
         plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
-        plt.title('Market Share by Region', fontsize=16)
+        plt.title('지역별 시장 점유율', fontsize=16)
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         st.pyplot(plt)
 
-        # 전용면적 범위 설정
-        selected_data['전용면적'] = selected_data['전용면적'].astype(float)  # 타입 변환
-        selected_data = selected_data[selected_data['전용면적'].notna()]  # NaN 값 제거
+        # 원형 그래프 표로 표시
+        regional_summary_df = regional_summary.reset_index()
+        regional_summary_df.columns = ['시군구', '거래량']
+        regional_summary_df['합계'] = regional_summary_df['거래량'].sum()
+        st.write("지역별 거래량")
+        st.dataframe(regional_summary_df)
 
+        # 전용면적 범위별 거래량
         bins = [0, 80, 100, 120, 140, float('inf')]
-        labels = ['0-80', '80-100', '100-120', '120-140', '140 이상']
+        labels = ['0~80', '80~100', '100~120', '120~140', '140 이상']
         selected_data['면적 범위'] = pd.cut(selected_data['전용면적'], bins=bins, labels=labels, right=False)
+        
+        area_range_summary = selected_data.groupby('면적 범위').size().reset_index(name='거래량')
+        area_range_summary['합계'] = area_range_summary['거래량'].sum()
+        st.write("전용면적 범위별 거래량")
+        st.dataframe(area_range_summary)
 
-        # 면적 범위별 거래량 집계
-        size_distribution = selected_data['면적 범위'].value_counts().sort_index()
-
-        # 결과 출력
-        st.write("### 전용면적 범위별 거래량")
-        st.bar_chart(size_distribution)
+        # 면적 대비 거래
+        area_transaction_summary = selected_data.groupby(['면적 범위', '시군구']).size().reset_index(name='거래량')
+        area_transaction_summary['합계'] = area_transaction_summary['거래량'].sum()
+        st.write("각 지역별 면적 대비 거래")
+        st.dataframe(area_transaction_summary)
 
     else:
         st.error("모든 필드를 채워주세요.")
