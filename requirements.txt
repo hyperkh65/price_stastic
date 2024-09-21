@@ -10,3 +10,4 @@ geopandas
 plotly
 openpyxl
 folium
+st_folium
