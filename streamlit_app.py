@@ -40,10 +40,11 @@ start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, �
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
 data_query_button = st.sidebar.button("데이터 조회")
 
-# 사용자 정의 폰트 설정
-font_path = os.path.join(os.getcwd(), 'NanumGothicCoding.ttf')
+# 폰트 파일 경로 설정
+current_dir = os.getcwd()
+font_path = os.path.join(current_dir, 'NanumGothicCoding.ttf')
 fm.fontManager.addfont(font_path)
-plt.rcParams['font.family'] = 'NanumGothicCoding'
+plt.rcParams['font.family'] = 'NanumGothicCoding'  # 사용자 선택한 폰트 적용
 
 # 현재 날짜를 기준으로 기간 설정
 now = datetime.now()
@@ -157,69 +158,43 @@ if data_query_button:
 
         # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
-        monthly_transactions['합계'] = monthly_transactions['거래량'].sum()
-        
         st.write("매월 거래량")
+        st.dataframe(monthly_transactions)
+
+        # 매월 거래량 시각화
         plt.figure(figsize=(10, 6))
         plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
-        plt.title('매월 거래량', fontsize=16)
-        plt.xlabel('년도-월', fontsize=14)
-        plt.ylabel('거래량', fontsize=14)
+        plt.title('Monthly Transactions', fontsize=16)
+        plt.xlabel('Year-Month', fontsize=14)
+        plt.ylabel('Transactions', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(plt)
 
-        st.dataframe(monthly_transactions)
-
         # 지역별 거래량 (월별)
         regional_monthly_transactions = selected_data.groupby(['거래년도', '거래월', '시군구']).size().reset_index(name='거래량')
+        st.write("지역별 거래량 (월별)")
+        st.dataframe(regional_monthly_transactions)
 
         # 원형 그래프로 거래 비중 시각화
         plt.figure(figsize=(8, 8))
         regional_summary = selected_data['시군구'].value_counts()
         plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
-        plt.title('지역별 거래 비중', fontsize=16)
+        plt.title('Market Share by Region', fontsize=16)
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         st.pyplot(plt)
 
-        st.write("지역별 거래량 (월별)")
-        regional_pivot = regional_monthly_transactions.pivot_table(index='시군구', columns='거래월', values='거래량', fill_value=0)
-        regional_pivot['합계'] = regional_pivot.sum(axis=1)
-        st.dataframe(regional_pivot)
+        # 전용면적 범위 설정
+        bins = [0, 20, 40, 60, 80, 100, 120, 140, float('inf')]
+        labels = ['0-20', '20-40', '40-60', '60-80', '80-100', '100-120', '120-140', '140 이상']
+        selected_data['면적 범위'] = pd.cut(selected_data['전용면적'], bins=bins, labels=labels, right=False)
 
-        # 데이터 표로 표시
-        st.write("### 조회 결과")
-        st.dataframe(selected_data)
-        
-        # 전용면적 컬럼에서 NaN 값을 제거합니다.
-        if '전용면적' in selected_data.columns:
-            selected_data = selected_data[selected_data['전용면적'].notna()]
-        
-            # 평형대별 거래량
-            size_ranges = pd.cut(
-                selected_data['전용면적'],
-                bins=[0, 40, 60, 85, 100, 120, 140, 160, float('inf')],
-                labels=['40㎡ 이하', '40~60㎡', '60~85㎡', '85~100㎡', '100~120㎡', '120~140㎡', '140~160㎡', '160㎡ 초과'],
-                include_lowest=True  # 하한 포함
-            )
-        
-            size_distribution = selected_data.groupby(size_ranges).size().reset_index(name='거래량')
-            st.write("### 평형대별 거래량")
-            st.dataframe(size_distribution)
-        
-            # 평형대별 거래량 시각화
-            plt.figure(figsize=(10, 6))
-            plt.bar(size_distribution[size_ranges].astype(str), size_distribution['거래량'], color='lightgreen')
-            plt.title('평형대별 거래량', fontsize=16)
-            plt.xlabel('평형대', fontsize=14)
-            plt.ylabel('거래량', fontsize=14)
-            plt.xticks(rotation=45)
-            plt.tight_layout()
-            st.pyplot(plt)
-        else:
-            st.error("전용면적 데이터가 없습니다.")
-                
-                # 그 외의 분석 자료 코드...         
+        # 면적 범위별 거래량 집계
+        size_distribution = selected_data['면적 범위'].value_counts().sort_index()
+
+        # 결과 출력
+        st.write("### 전용면적 범위별 거래량")
+        st.bar_chart(size_distribution)
 
     else:
         st.error("모든 필드를 채워주세요.")
