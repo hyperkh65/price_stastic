@@ -218,7 +218,7 @@ if data_query_button:
 
             if response.status_code == 201:
                 st.success("포스팅이 완료되었습니다.")
-            else
+            else :
                             st.error("포스팅에 실패했습니다. 오류: " + response.text)
 
             # PDF 저장 (기본적으로 matplotlib 그래프 및 표 포함)
