@@ -252,13 +252,13 @@ if data_query_button:
         # selected_data 초기 상태 확인
         print("초기 selected_data 개수:", selected_data.shape[0])
         
-        # 지역별 거래량 집계
-        popular_apartments = selected_data.groupby(['지역', '아파트명']).size().reset_index(name='거래량')
+       # 법정동별 인기 아파트 분석
+        popular_apartments = selected_data.groupby(['법정동', '아파트']).size().reset_index(name='거래량')
         
-        # 각 지역별 최고의 아파트 선정
-        best_apartments = popular_apartments.loc[popular_apartments.groupby('지역')['거래량'].idxmax()]
+        # 각 법정동별 거래량이 가장 높은 아파트 찾기
+        top_apartments = popular_apartments.loc[popular_apartments.groupby('법정동')['거래량'].idxmax()]
         
-        # 표 출력
-        st.write("각 지역별 최고의 아파트")
-        st.dataframe(best_apartments)
+        # 결과를 표로 표시
+        st.write("법정동별 인기 아파트")
+        st.dataframe(top_apartments)
            
