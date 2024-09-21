@@ -41,7 +41,7 @@ end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예
 data_query_button = st.sidebar.button("데이터 조회")
 
 # 웹 폰트 파일 경로 설정
-font_path = os.path.join(fm.getcwd(), 'NanumGothic.ttf')
+font_path = os.path.join(os.getcwd(), 'NanumGothic.ttf')
 fm.fontManager.addfont(font_path)
 plt.rcParams['font.family'] = 'Nanum Gothic'  # 그래프 폰트 설정
 plt.rcParams['axes.unicode_minus'] = False  # 음수 기호 표시
