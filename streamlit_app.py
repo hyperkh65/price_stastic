@@ -139,11 +139,13 @@ if 'query' in st.session_state and st.session_state['query']:
 
     # 진행율 계산
     total_transactions = len(selected_data)
-    progress = (all_data.shape[0] / total_transactions * 100) if total_transactions > 0 else 0
+    if total_transactions > 0:
+        progress = (all_data.shape[0] / total_transactions) * 100
+    else:
+        progress = 0
+
     st.sidebar.write(f"진행율: {progress:.2f}% ({all_data.shape[0]}/{total_transactions})")
-    
-    # 진행현황 표시
-    st.sidebar.progress(progress)
+    st.sidebar.progress(min(max(progress, 0), 100))  # 0과 100 사이로 제한
 
     # 분석 자료
     st.write("### 분석 자료")
