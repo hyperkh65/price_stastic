@@ -6,14 +6,10 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import os
-import pdfkit
-import requests
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
 json_file_path = "district.json"
-wp_username = st.secrets["wordpress"]["username"]
-wp_password = st.secrets["wordpress"]["password"]
 
 # PublicDataReader API 서비스 키 사용
 api = pdr.TransactionPrice(service_key)
@@ -48,7 +44,7 @@ data_query_button = st.sidebar.button("데이터 조회")
 current_dir = os.getcwd()
 font_path = os.path.join(current_dir, 'NanumGothicCoding.ttf')
 fm.fontManager.addfont(font_path)
-plt.rcParams['font.family'] = 'NanumGothicCoding'
+plt.rcParams['font.family'] = 'NanumGothicCoding'  # 사용자 선택한 폰트 적용
 
 # 현재 날짜를 기준으로 기간 설정
 now = datetime.now()
@@ -162,11 +158,11 @@ if data_query_button:
 
         # 전용면적 데이터 타입 변환 및 결측치 처리
         selected_data['전용면적'] = pd.to_numeric(selected_data['전용면적'], errors='coerce')
-        selected_data.dropna(subset=['전용면적'], inplace=True)
+        selected_data.dropna(subset=['전용면적'], inplace=True)  # 결측치 삭제
 
-        # 매월 거래량
+       # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
-
+        
         # 매월 거래량 시각화
         st.header("매월 거래량 📅")
         plt.figure(figsize=(10, 6))
@@ -176,112 +172,93 @@ if data_query_button:
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(plt)
-
+        
         # 매월 거래량 표 추가
-        st.write("### 매월 거래량 요약")
+        monthly_summary = monthly_transactions.groupby('거래년도')['거래량'].sum().reset_index()
+        monthly_summary.columns = ['거래년도', '월별 거래량']
         st.dataframe(monthly_transactions)
-
+        
         # 지역별 거래량
         regional_summary = selected_data.groupby('시군구').size().reset_index(name='거래량')
-        regional_summary['총계'] = regional_summary['거래량'].sum()  
+        regional_summary['총계'] = regional_summary['거래량'].sum()  # 총계 열 추가
+    
 
         # 전용면적 범위별 거래량
         bins = [0, 80, 100, 120, 140, float('inf')]
         labels = ['0~80', '80~100', '100~120', '120~140', '140 이상']
         selected_data['면적 범위'] = pd.cut(selected_data['전용면적'], bins=bins, labels=labels, right=False)
         area_counts = selected_data['면적 범위'].value_counts().sort_index()
-
+        
         # 전용면적 범위별 거래량 시각화
         st.header("전용면적 범위별 거래량 📏")
         plt.figure(figsize=(10, 6))
-        plt.bar(area_counts.index, area_counts.values, color='#2196F3', edgecolor='none')
+        plt.bar(area_counts.index, area_counts.values, color='#2196F3', edgecolor='none')  # 색상 변경 및 아웃라인 제거
         plt.xlabel('면적 범위', fontsize=14)
         plt.ylabel('거래량', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(plt)
-
+        
+        # 전용면적 범위별 거래량 표 추가
+        area_summary = area_counts.reset_index()
+        area_summary.columns = ['면적 범위', '거래량']
+        area_summary['총계'] = area_summary['거래량'].sum()  # 총계 열 추가
+        st.dataframe(area_summary)
+        
+        # 지역별 면적 대비 거래량
+        regional_area_counts = selected_data.groupby(['시군구']).size()
+        
+        # 데이터가 비어 있는 경우 처리
+        if regional_area_counts.empty:
+            st.write("지역별 거래량 데이터가 없습니다.")
+        else:
+            # 지역별 면적 대비 거래량 시각화
+            st.header("지역별 면적 대비 거래량 🌍")
+            plt.figure(figsize=(10, 6))
+            plt.bar(regional_area_counts.index, regional_area_counts.values, color='#FFC107', edgecolor='none')  # 색상 변경 및 아웃라인 제거
+            plt.xlabel('시군구', fontsize=14)
+            plt.ylabel('거래량', fontsize=14)
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            st.pyplot(plt)
+        
+            # 지역별 면적 대비 거래량 표 추가
+            regional_summary = regional_area_counts.reset_index()
+            regional_summary.columns = ['시군구', '거래량']
+            regional_summary['총계'] = regional_summary['거래량'].sum()  # 총계 열 추가
+            st.dataframe(regional_summary)
+        
+        
         # 거래유형 분석
-        transaction_types = selected_data['거래유형'].value_counts()
-        st.header("거래유형 분석 🏠")
-        plt.figure(figsize=(10, 6))
-        plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#FF5733', '#33FF57'])
-        plt.axis('equal')
-        st.pyplot(plt)
+            transaction_types = selected_data['거래유형'].value_counts()
+            
+            # 데이터가 비어 있는 경우 처리
+            if transaction_types.empty:
+                st.write("거래유형 데이터가 없습니다.")
+            else:
+                # 거래유형 분석 시각화
+                st.header("거래유형 분석 🏠")
+                plt.figure(figsize=(10, 6))
+                plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#FF5733', '#33FF57'])  # 색상 변경
+                plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+                st.pyplot(plt)
+        
+        # 거래유형 분석 표
+        st.dataframe(transaction_types.reset_index().rename(columns={'index': '거래유형', 0: '거래량'}))
 
-        # 법정동별 인기 아파트 분석
+        # 거래량 합계
+        total_volume = monthly_transactions['거래량'].sum()
+        st.write(f"거래량 합계: {total_volume} 🏆")
+        # selected_data 초기 상태 확인
+        print("초기 selected_data 개수:", selected_data.shape[0])
+        
+       # 법정동별 인기 아파트 분석
         popular_apartments = selected_data.groupby(['법정동', '아파트']).size().reset_index(name='거래량')
+        
+        # 각 법정동별 거래량이 가장 높은 아파트 찾기
         top_apartments = popular_apartments.loc[popular_apartments.groupby('법정동')['거래량'].idxmax()]
         
         # 결과를 표로 표시
-                # 결과를 표로 표시
-        st.write("### 법정동별 인기 아파트 분석")
+        st.header("법정동별 거래 빈도가 높은 아파트 🌍")
         st.dataframe(top_apartments)
-
-        # 보고서 생성
-        if st.button("보고서 생성"):
-            report_content = f"""
-            <h1>부동산 거래 데이터 분석 보고서</h1>
-            <h2>조회 결과</h2>
-            {selected_data.to_html(index=False)}
-            <h2>매월 거래량</h2>
-            {monthly_transactions.to_html(index=False)}
-            <h2>전용면적 범위별 거래량</h2>
-            <h3>면적 범위별 거래량</h3>
-            {area_counts.to_frame(name='거래량').to_html()}
-            <h2>거래유형 분석</h2>
-            <img src='data:image/png;base64,{plt_to_base64()}'>
-            <h2>법정동별 인기 아파트 분석</h2>
-            {top_apartments.to_html(index=False)}
-            """
-            report_html_file = "report.html"
-            with open(report_html_file, 'w', encoding='utf-8') as f:
-                f.write(report_content)
-
-            # PDF로 변환
-            pdf_file = "report.pdf"
-            pdfkit.from_file(report_html_file, pdf_file)
-
-            st.success("보고서가 생성되었습니다.")
-
-        # 블로그 포스팅
-        if st.button("블로그에 포스팅"):
-            with open("report.pdf", "rb") as f:
-                files = {'file': f}
-                response = requests.post(
-                    "https://YOUR_WORDPRESS_URL/wp-json/wp/v2/media",
-                    auth=(wp_username, wp_password),
-                    files=files
-                )
-                if response.status_code == 201:
-                    media_id = response.json()['id']
-                    post = {
-                        'title': '부동산 거래 데이터 분석 보고서',
-                        'content': report_content,
-                        'status': 'publish',
-                        'featured_media': media_id
-                    }
-                    post_response = requests.post(
-                        "https://YOUR_WORDPRESS_URL/wp-json/wp/v2/posts",
-                        auth=(wp_username, wp_password),
-                        json=post
-                    )
-                    if post_response.status_code == 201:
-                        st.success("블로그에 포스팅이 완료되었습니다.")
-                    else:
-                        st.error("블로그 포스팅 실패: " + post_response.text)
-                else:
-                    st.error("파일 업로드 실패: " + response.text)
-
-def plt_to_base64():
-    """Generate a base64 string from the current matplotlib figure."""
-    from io import BytesIO
-    import base64
-    buf = BytesIO()
-    plt.savefig(buf, format='png')
-    plt.close()
-    buf.seek(0)
-    return base64.b64encode(buf.read()).decode()
-
-if __name__ == "__main__":
-    main()
+           
