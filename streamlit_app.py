@@ -252,32 +252,13 @@ if data_query_button:
         # selected_data 초기 상태 확인
         print("초기 selected_data 개수:", selected_data.shape[0])
         
-        # selected_data의 초기 상태 확인
-        print("초기 selected_data 개수:", selected_data.shape[0])
-        print("selected_data 열:", selected_data.columns)
+        # 지역별 거래량 집계
+        popular_apartments = selected_data.groupby(['지역', '아파트명']).size().reset_index(name='거래량')
         
-        # 각 열의 데이터 타입 확인
-        print("전용면적 데이터 타입:", selected_data['전용면적'].dtype)
-        print("거래금액 데이터 타입:", selected_data['거래금액'].dtype)
+        # 각 지역별 최고의 아파트 선정
+        best_apartments = popular_apartments.loc[popular_apartments.groupby('지역')['거래량'].idxmax()]
         
-        # 결측치 확인
-        print("전용면적 결측치 수:", selected_data['전용면적'].isnull().sum())
-        print("거래금액 결측치 수:", selected_data['거래금액'].isnull().sum())
-        
-        # 데이터 타입을 float로 변환 (필요한 경우)
-        selected_data['전용면적'] = pd.to_numeric(selected_data['전용면적'], errors='coerce')
-        selected_data['거래금액'] = pd.to_numeric(selected_data['거래금액'], errors='coerce')
-        
-        # 결측치 제거
-        selected_data = selected_data.dropna(subset=['전용면적', '거래금액'])
-        
-        # 결측치 제거 후 상태 확인
-        print("결측치 제거 후 selected_data 개수:", selected_data.shape[0])
-        
-        # 면적당 거래금액 계산
-        if not selected_data.empty:
-            selected_data['면적당 거래금액'] = selected_data['거래금액'] / selected_data['전용면적']
-            print(selected_data[['전용면적', '거래금액', '면적당 거래금액']])
-        else:
-            print("결과 데이터가 없습니다.")
+        # 표 출력
+        st.write("각 지역별 최고의 아파트")
+        st.dataframe(best_apartments)
            
