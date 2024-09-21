@@ -40,11 +40,10 @@ start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, �
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
 data_query_button = st.sidebar.button("데이터 조회")
 
-# 폰트 파일 경로 설정
-current_dir = os.getcwd()
-font_path = os.path.join(current_dir, 'NanumGothicCoding.ttf')
+# 사용자 정의 폰트 설정
+font_path = os.path.join(os.getcwd(), 'NanumGothicCoding.ttf')
 fm.fontManager.addfont(font_path)
-plt.rcParams['font.family'] = 'NanumGothicCoding'  # 사용자 선택한 폰트 적용
+plt.rcParams['font.family'] = 'NanumGothicCoding'
 
 # 현재 날짜를 기준으로 기간 설정
 now = datetime.now()
@@ -158,31 +157,35 @@ if data_query_button:
 
         # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
+        monthly_transactions['합계'] = monthly_transactions['거래량'].sum()
+        
         st.write("매월 거래량")
-        st.dataframe(monthly_transactions)
-
-        # 매월 거래량 시각화
         plt.figure(figsize=(10, 6))
         plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
-        plt.title('Monthly Transactions', fontsize=16)
-        plt.xlabel('Year-Month', fontsize=14)
-        plt.ylabel('Transactions', fontsize=14)
+        plt.title('매월 거래량', fontsize=16)
+        plt.xlabel('년도-월', fontsize=14)
+        plt.ylabel('거래량', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(plt)
 
+        st.dataframe(monthly_transactions)
+
         # 지역별 거래량 (월별)
         regional_monthly_transactions = selected_data.groupby(['거래년도', '거래월', '시군구']).size().reset_index(name='거래량')
-        st.write("지역별 거래량 (월별)")
-        st.dataframe(regional_monthly_transactions)
 
         # 원형 그래프로 거래 비중 시각화
         plt.figure(figsize=(8, 8))
         regional_summary = selected_data['시군구'].value_counts()
         plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
-        plt.title('Market Share by Region', fontsize=16)
+        plt.title('지역별 거래 비중', fontsize=16)
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         st.pyplot(plt)
+
+        st.write("지역별 거래량 (월별)")
+        regional_pivot = regional_monthly_transactions.pivot_table(index='시군구', columns='거래월', values='거래량', fill_value=0)
+        regional_pivot['합계'] = regional_pivot.sum(axis=1)
+        st.dataframe(regional_pivot)
 
     else:
         st.error("모든 필드를 채워주세요.")
