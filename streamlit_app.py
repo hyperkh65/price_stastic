@@ -175,6 +175,7 @@ if data_query_button:
         plt.xticks(rotation=45)
         plt.tight_layout()
         plt.rcParams['font.family'] = 'Nanum Gothic'  # 그래프 폰트 설정
+        plt.rcParams['axes.unicode_minus'] = False  # 음수 기호 표시
         st.pyplot(plt)
 
         # 지역별 거래량 (월별)
@@ -189,6 +190,7 @@ if data_query_button:
         plt.title('Market Share by Region', fontsize=16)
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         plt.rcParams['font.family'] = 'Nanum Gothic'  # 그래프 폰트 설정
+        plt.rcParams['axes.unicode_minus'] = False  # 음수 기호 표시
         st.pyplot(plt)
 
     else:
