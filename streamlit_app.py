@@ -4,7 +4,6 @@ import PublicDataReader as pdr
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -32,21 +31,25 @@ class DistrictConverter:
             if si_do_code == district["si_do_code"]:
                 return district["sigungu"]
 
-# 폰트 설정
-plt.rcParams['axes.unicode_minus'] = False
-font_path = '/System/Library/Fonts/Supplemental/AppleGothic.ttf'  # 시스템에 따라 경로 변경 필요
-font_prop = fm.FontProperties(fname=font_path)
-plt.rcParams['font.family'] = font_prop.get_name()
-
-# matplotlib 폰트 캐시 재생성
-fm._rebuild()
-
 # 사용자 입력 받기
 st.title("부동산 데이터 조회")
 si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "전국")
 start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "")
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
 data_query_button = st.sidebar.button("데이터 조회")
+
+# 웹 폰트 설정
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap');
+    body {
+        font-family: 'Nanum Gothic', sans-serif;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # 현재 날짜를 기준으로 기간 설정
 now = datetime.now()
@@ -166,11 +169,12 @@ if data_query_button:
         # 매월 거래량 시각화
         plt.figure(figsize=(10, 6))
         plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
-        plt.title('월별 거래량', fontsize=16, fontproperties=font_prop)
-        plt.xlabel('년-월', fontsize=14, fontproperties=font_prop)
-        plt.ylabel('거래량', fontsize=14, fontproperties=font_prop)
+        plt.title('Monthly Transactions', fontsize=16)
+        plt.xlabel('Year-Month', fontsize=14)
+        plt.ylabel('Transactions', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
+        plt.rcParams['font.family'] = 'Nanum Gothic'  # 그래프 폰트 설정
         st.pyplot(plt)
 
         # 지역별 거래량 (월별)
@@ -182,8 +186,9 @@ if data_query_button:
         plt.figure(figsize=(8, 8))
         regional_summary = selected_data['시군구'].value_counts()
         plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
-        plt.title('지역별 시장 점유율', fontsize=16, fontproperties=font_prop)
+        plt.title('Market Share by Region', fontsize=16)
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        plt.rcParams['font.family'] = 'Nanum Gothic'  # 그래프 폰트 설정
         st.pyplot(plt)
 
     else:
