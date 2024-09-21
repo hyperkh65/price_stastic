@@ -4,12 +4,10 @@ import PublicDataReader as pdr
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
-from matplotlib import font_manager, rc
+from matplotlib import rc
 
-# 구글에서 제공하는 기본 한글 폰트 적용
-font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
-font_manager.fontManager.addfont(font_path)
-rc('font', family='NanumGothic')
+# matplotlib에서 한글 폰트 적용
+rc('font', family='NanumGothic')  # 시스템에 설치된 'NanumGothic' 폰트 사용
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
