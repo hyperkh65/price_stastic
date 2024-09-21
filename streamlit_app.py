@@ -74,18 +74,28 @@ if data_query_button:
                     progress_text.text(f"진행율: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
                     status_text.text(f"현재 처리 중: {sigungu_name} ({sigungu_code})")
 
-                    df = api.get_data(
-                        property_type="아파트",
-                        trade_type="매매",
-                        sigungu_code=sigungu_code,
-                        start_year_month=start_year_month,
-                        end_year_month=end_year_month
-                    )
+                    try:
+                        df = api.get_data(
+                            property_type="아파트",
+                            trade_type="매매",
+                            sigungu_code=sigungu_code,
+                            start_year_month=start_year_month,
+                            end_year_month=end_year_month
+                        )
 
-                    df["sigungu_name"] = sigungu_name
-                    df["si_do_name"] = district["si_do_name"]
+                        if df.empty or 'response' not in df or 'header' not in df['response'] or df['response']['header']['resultCode'] != '000':
+                            st.warning(f"{sigungu_name}에서 데이터를 가져오는 데 실패했습니다.")
+                            continue
 
-                    all_data = pd.concat([all_data, df], ignore_index=True)
+                        df["sigungu_name"] = sigungu_name
+                        df["si_do_name"] = district["si_do_name"]
+
+                        all_data = pd.concat([all_data, df], ignore_index=True)
+
+                    except Exception as e:
+                        st.error(f"데이터 조회 중 오류 발생: {e}")
+                        continue
+
         else:
             si_do_code = converter.get_si_do_code(si_do_name)
             sigungu_list = converter.get_sigungu(si_do_code)
@@ -102,18 +112,27 @@ if data_query_button:
                 progress_text.text(f"진행율: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
                 status_text.text(f"현재 처리 중: {sigungu_name} ({sigungu_code})")
 
-                df = api.get_data(
-                    property_type="아파트",
-                    trade_type="매매",
-                    sigungu_code=sigungu_code,
-                    start_year_month=start_year_month,
-                    end_year_month=end_year_month
-                )
+                try:
+                    df = api.get_data(
+                        property_type="아파트",
+                        trade_type="매매",
+                        sigungu_code=sigungu_code,
+                        start_year_month=start_year_month,
+                        end_year_month=end_year_month
+                    )
 
-                df["sigungu_name"] = sigungu_name
-                df["si_do_name"] = si_do_name
+                    if df.empty or 'response' not in df or 'header' not in df['response'] or df['response']['header']['resultCode'] != '000':
+                        st.warning(f"{sigungu_name}에서 데이터를 가져오는 데 실패했습니다.")
+                        continue
 
-                all_data = pd.concat([all_data, df], ignore_index=True)
+                    df["sigungu_name"] = sigungu_name
+                    df["si_do_name"] = si_do_name
+
+                    all_data = pd.concat([all_data, df], ignore_index=True)
+
+                except Exception as e:
+                    st.error(f"데이터 조회 중 오류 발생: {e}")
+                    continue
 
         # 컬럼 이름 변환
         columns_to_select = {
@@ -144,7 +163,6 @@ if data_query_button:
         st.dataframe(selected_data)
 
         # 분석 자료
-        st.write("### 분석 자료")
         total_transactions = selected_data.shape[0]
         st.write(f"총 거래량: {total_transactions}")
 
@@ -161,15 +179,20 @@ if data_query_button:
         plt.ylabel('Transactions', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
-
-        # 그래프 출력
         st.pyplot(plt)
 
-        # 지역별 거래량
-        regional_transactions = selected_data['시군구'].value_counts().reset_index()
-        regional_transactions.columns = ['시군구', '거래량']
-        st.write("지역별 거래량")
-        st.dataframe(regional_transactions)
+        # 지역별 거래량 (월별)
+        regional_monthly_transactions = selected_data.groupby(['거래년도', '거래월', '시군구']).size().reset_index(name='거래량')
+        st.write("지역별 거래량 (월별)")
+        st.dataframe(regional_monthly_transactions)
+
+        # 원형 그래프로 거래 비중 시각화
+        plt.figure(figsize=(8, 8))
+        regional_summary = selected_data['시군구'].value_counts()
+        plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
+        plt.title('Market Share by Region', fontsize=16)
+        plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        st.pyplot(plt)
 
     else:
         st.error("모든 필드를 채워주세요.")
