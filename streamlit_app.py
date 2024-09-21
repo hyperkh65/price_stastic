@@ -43,7 +43,7 @@ data_query_button = st.sidebar.button("데이터 조회")
 # 사용자 정의 폰트 설정
 font_path = os.path.join(os.getcwd(), 'NanumGothicCoding.ttf')
 fm.fontManager.addfont(font_path)
-plt.rcParams['font.family'] = 'NanumGothicCoding'
+plt.rcParams['font.family'] = 'NanumGothic'
 
 # 현재 날짜를 기준으로 기간 설정
 now = datetime.now()
@@ -158,7 +158,7 @@ if data_query_button:
         # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         monthly_transactions['합계'] = monthly_transactions['거래량'].sum()
-        
+
         st.write("매월 거래량")
         plt.figure(figsize=(10, 6))
         plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
