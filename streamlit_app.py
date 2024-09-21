@@ -161,15 +161,20 @@ if data_query_button:
         plt.ylabel('Transactions', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
-
-        # 그래프 출력
         st.pyplot(plt)
 
-        # 지역별 거래량
-        regional_transactions = selected_data['시군구'].value_counts().reset_index()
-        regional_transactions.columns = ['시군구', '거래량']
-        st.write("지역별 거래량")
-        st.dataframe(regional_transactions)
+        # 지역별 거래량 (월별)
+        regional_monthly_transactions = selected_data.groupby(['거래년도', '거래월', '시군구']).size().reset_index(name='거래량')
+        st.write("지역별 거래량 (월별)")
+        st.dataframe(regional_monthly_transactions)
+
+        # 원형 그래프로 거래 비중 시각화
+        plt.figure(figsize=(8, 8))
+        regional_summary = selected_data['시군구'].value_counts()
+        plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
+        plt.title('Market Share by Region', fontsize=16)
+        plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        st.pyplot(plt)
 
     else:
         st.error("모든 필드를 채워주세요.")
