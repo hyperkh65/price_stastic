@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
-fm._rebuild()  # 폰트 캐시를 다시 빌드
+
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
