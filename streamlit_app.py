@@ -3,6 +3,7 @@ import pandas as pd
 import PublicDataReader as pdr
 from datetime import datetime
 import json
+from io import BytesIO
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -32,9 +33,10 @@ class DistrictConverter:
 
 # 사용자 입력 받기
 st.title("부동산 데이터 조회")
-si_do_name = st.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "전국")
-start_year_month = st.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "")
-end_year_month = st.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
+si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "전국")
+start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "")
+end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
+data_query_button = st.sidebar.button("데이터 조회")
 
 # 현재 날짜를 기준으로 기간 설정
 now = datetime.now()
@@ -43,12 +45,11 @@ if not start_year_month:
 if not end_year_month:
     end_year_month = now.strftime("%Y%m")
 
-# 진행현황
+# 진행 상황 표시
 progress_text = st.sidebar.empty()
-total_count = 0
+status_text = st.sidebar.empty()
 
-# 데이터를 조회하는 버튼을 추가하여, 사용자 입력 후에만 데이터 처리를 시작합니다.
-if st.button("데이터 조회"):
+if data_query_button:
     if si_do_name and start_year_month and end_year_month:
         # DistrictConverter 인스턴스 생성
         converter = DistrictConverter()
@@ -68,6 +69,11 @@ if st.button("데이터 조회"):
                     sigungu_code = sigungu["sigungu_code"]
                     sigungu_name = sigungu["sigungu_name"]
 
+                    # 현재 진행 상황 업데이트
+                    processed_count += 1
+                    progress_text.text(f"진행율: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
+                    status_text.text(f"현재 처리 중: {sigungu_name} ({sigungu_code})")
+
                     df = api.get_data(
                         property_type="아파트",
                         trade_type="매매",
@@ -78,11 +84,8 @@ if st.button("데이터 조회"):
 
                     df["sigungu_name"] = sigungu_name
                     df["si_do_name"] = district["si_do_name"]
-                    all_data = pd.concat([all_data, df], ignore_index=True)
 
-                    # 진행현황 업데이트
-                    processed_count += 1
-                    progress_text.text(f"진행율: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
+                    all_data = pd.concat([all_data, df], ignore_index=True)
         else:
             si_do_code = converter.get_si_do_code(si_do_name)
             sigungu_list = converter.get_sigungu(si_do_code)
@@ -94,6 +97,11 @@ if st.button("데이터 조회"):
                 sigungu_code = sigungu["sigungu_code"]
                 sigungu_name = sigungu["sigungu_name"]
 
+                # 현재 진행 상황 업데이트
+                processed_count += 1
+                progress_text.text(f"진행율: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
+                status_text.text(f"현재 처리 중: {sigungu_name} ({sigungu_code})")
+
                 df = api.get_data(
                     property_type="아파트",
                     trade_type="매매",
@@ -104,11 +112,8 @@ if st.button("데이터 조회"):
 
                 df["sigungu_name"] = sigungu_name
                 df["si_do_name"] = si_do_name
-                all_data = pd.concat([all_data, df], ignore_index=True)
 
-                # 진행현황 업데이트
-                processed_count += 1
-                progress_text.text(f"진행율: {100 * processed_count / total_count:.2f}% ({processed_count}/{total_count})")
+                all_data = pd.concat([all_data, df], ignore_index=True)
 
         # 컬럼 이름 변환
         columns_to_select = {
@@ -138,43 +143,22 @@ if st.button("데이터 조회"):
         st.write("### 조회 결과")
         st.dataframe(selected_data)
 
-        # 분석 자료 추가
+        # 분석 자료
         st.write("### 분석 자료")
-
-        # 총 거래량
         total_transactions = selected_data.shape[0]
         st.write(f"총 거래량: {total_transactions}")
 
-        # 매월 거래량
-        monthly_volume = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
+        monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         st.write("매월 거래량")
-        st.line_chart(monthly_volume.set_index(['거래년도', '거래월']).unstack().fillna(0))
+        st.dataframe(monthly_transactions)
 
         # 지역별 거래량
-        regional_volume = selected_data['시군구'].value_counts()
+        regional_transactions = selected_data['시군구'].value_counts().reset_index()
+        regional_transactions.columns = ['시군구', '거래량']
         st.write("지역별 거래량")
-        st.bar_chart(regional_volume)
+        st.dataframe(regional_transactions)
 
-        # 거래유형 분석
-        dealing_type_volume = selected_data['거래유형'].value_counts()
-        st.write("거래유형 분석")
-        st.bar_chart(dealing_type_volume)
-
-        # 평형대별 거래량
-        size_bins = [0, 50, 85, 102, 135, 200, float('inf')]
-        size_labels = ['0-50', '51-85', '86-102', '103-135', '136-200', '200+']
-        selected_data['전용면적대'] = pd.cut(selected_data['전용면적'], bins=size_bins, labels=size_labels)
-        size_volume = selected_data['전용면적대'].value_counts()
-        st.write("평형대별 거래량")
-        st.bar_chart(size_volume)
-
-        # 금액대별 거래량
-        price_bins = [0, 20000, 40000, 60000, 80000, 100000, float('inf')]
-        price_labels = ['0-20M', '21-40M', '41-60M', '61-80M', '81-100M', '100M+']
-        selected_data['거래금액대'] = pd.cut(selected_data['거래금액'], bins=price_bins, labels=price_labels)
-        price_volume = selected_data['거래금액대'].value_counts()
-        st.write("금액대별 거래량")
-        st.bar_chart(price_volume)
-
+        # 여기에 추가 분석 및 시각화를 이어갈 수 있음.
+        
     else:
         st.error("모든 필드를 채워주세요.")
