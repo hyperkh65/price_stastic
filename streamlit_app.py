@@ -3,7 +3,8 @@ import pandas as pd
 import PublicDataReader as pdr
 from datetime import datetime
 import json
-from io import BytesIO
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -148,17 +149,56 @@ if data_query_button:
         total_transactions = selected_data.shape[0]
         st.write(f"총 거래량: {total_transactions}")
 
+        # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         st.write("매월 거래량")
+        monthly_fig, ax = plt.subplots()
+        sns.lineplot(data=monthly_transactions, x='거래월', y='거래량', hue='거래년도', ax=ax)
+        st.pyplot(monthly_fig)
         st.dataframe(monthly_transactions)
 
         # 지역별 거래량
         regional_transactions = selected_data['시군구'].value_counts().reset_index()
         regional_transactions.columns = ['시군구', '거래량']
         st.write("지역별 거래량")
+        regional_fig, ax = plt.subplots()
+        sns.barplot(data=regional_transactions, x='시군구', y='거래량', ax=ax)
+        plt.xticks(rotation=45)
+        st.pyplot(regional_fig)
         st.dataframe(regional_transactions)
 
-        # 여기에 추가 분석 및 시각화를 이어갈 수 있음.
-        
+        # 거래유형 분석
+        transaction_type = selected_data['거래유형'].value_counts().reset_index()
+        transaction_type.columns = ['거래유형', '거래량']
+        st.write("거래유형 분석")
+        transaction_type_fig, ax = plt.subplots()
+        ax.pie(transaction_type['거래량'], labels=transaction_type['거래유형'], autopct='%1.1f%%', startangle=90)
+        st.pyplot(transaction_type_fig)
+        st.dataframe(transaction_type)
+
+        # 평형대별 거래량
+        area_bins = [0, 30, 50, 70, 100, 130, 150, 200, 300]
+        area_labels = ['0-30', '31-50', '51-70', '71-100', '101-130', '131-150', '151-200', '200+']
+        selected_data['평형대'] = pd.cut(selected_data['전용면적'], bins=area_bins, labels=area_labels, right=False)
+        area_transactions = selected_data['평형대'].value_counts().reset_index()
+        area_transactions.columns = ['평형대', '거래량']
+        st.write("평형대별 거래량")
+        area_fig, ax = plt.subplots()
+        sns.barplot(data=area_transactions, x='평형대', y='거래량', ax=ax)
+        st.pyplot(area_fig)
+        st.dataframe(area_transactions)
+
+        # 금액대별 거래량
+        price_bins = [0, 30000, 60000, 90000, 120000, 150000, 200000, 300000]
+        price_labels = ['0-30M', '31-60M', '61-90M', '91-120M', '121-150M', '151-200M', '200M+']
+        selected_data['금액대'] = pd.cut(selected_data['거래금액'] / 10000, bins=price_bins, labels=price_labels, right=False)
+        price_transactions = selected_data['금액대'].value_counts().reset_index()
+        price_transactions.columns = ['금액대', '거래량']
+        st.write("금액대별 거래량")
+        price_fig, ax = plt.subplots()
+        sns.barplot(data=price_transactions, x='금액대', y='거래량', ax=ax)
+        st.pyplot(price_fig)
+        st.dataframe(price_transactions)
+
     else:
         st.error("모든 필드를 채워주세요.")
