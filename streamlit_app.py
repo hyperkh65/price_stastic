@@ -188,38 +188,38 @@ if data_query_button:
         st.dataframe(regional_pivot)
 
         # 데이터 표로 표시
-st.write("### 조회 결과")
-st.dataframe(selected_data)
-
-# 전용면적 컬럼에서 NaN 값을 제거합니다.
-if '전용면적' in selected_data.columns:
-    selected_data = selected_data[selected_data['전용면적'].notna()]
-
-    # 평형대별 거래량
-    size_ranges = pd.cut(
-        selected_data['전용면적'],
-        bins=[0, 40, 60, 85, 100, 120, 140, 160, float('inf')],
-        labels=['40㎡ 이하', '40~60㎡', '60~85㎡', '85~100㎡', '100~120㎡', '120~140㎡', '140~160㎡', '160㎡ 초과'],
-        include_lowest=True  # 하한 포함
-    )
-
-    size_distribution = selected_data.groupby(size_ranges).size().reset_index(name='거래량')
-    st.write("### 평형대별 거래량")
-    st.dataframe(size_distribution)
-
-    # 평형대별 거래량 시각화
-    plt.figure(figsize=(10, 6))
-    plt.bar(size_distribution[size_ranges].astype(str), size_distribution['거래량'], color='lightgreen')
-    plt.title('평형대별 거래량', fontsize=16)
-    plt.xlabel('평형대', fontsize=14)
-    plt.ylabel('거래량', fontsize=14)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    st.pyplot(plt)
-else:
-    st.error("전용면적 데이터가 없습니다.")
+        st.write("### 조회 결과")
+        st.dataframe(selected_data)
         
-        # 그 외의 분석 자료 코드...         
+        # 전용면적 컬럼에서 NaN 값을 제거합니다.
+        if '전용면적' in selected_data.columns:
+            selected_data = selected_data[selected_data['전용면적'].notna()]
+        
+            # 평형대별 거래량
+            size_ranges = pd.cut(
+                selected_data['전용면적'],
+                bins=[0, 40, 60, 85, 100, 120, 140, 160, float('inf')],
+                labels=['40㎡ 이하', '40~60㎡', '60~85㎡', '85~100㎡', '100~120㎡', '120~140㎡', '140~160㎡', '160㎡ 초과'],
+                include_lowest=True  # 하한 포함
+            )
+        
+            size_distribution = selected_data.groupby(size_ranges).size().reset_index(name='거래량')
+            st.write("### 평형대별 거래량")
+            st.dataframe(size_distribution)
+        
+            # 평형대별 거래량 시각화
+            plt.figure(figsize=(10, 6))
+            plt.bar(size_distribution[size_ranges].astype(str), size_distribution['거래량'], color='lightgreen')
+            plt.title('평형대별 거래량', fontsize=16)
+            plt.xlabel('평형대', fontsize=14)
+            plt.ylabel('거래량', fontsize=14)
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            st.pyplot(plt)
+        else:
+            st.error("전용면적 데이터가 없습니다.")
+                
+                # 그 외의 분석 자료 코드...         
 
     else:
         st.error("모든 필드를 채워주세요.")
