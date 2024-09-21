@@ -144,8 +144,11 @@ if 'query' in st.session_state and st.session_state['query']:
     else:
         progress = 0
 
+    # progress 값이 0~100 사이인지 확인
+    progress = min(max(progress, 0), 100)
+
     st.sidebar.write(f"진행율: {progress:.2f}% ({all_data.shape[0]}/{total_transactions})")
-    st.sidebar.progress(min(max(progress, 0), 100))  # 0과 100 사이로 제한
+    st.sidebar.progress(progress)  # 0과 100 사이로 제한된 progress 값 사용
 
     # 분석 자료
     st.write("### 분석 자료")
