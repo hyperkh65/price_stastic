@@ -9,3 +9,4 @@ PublicDataReader
 matplotlib
 seaborn
 xlsxwriter
+pdfkit
