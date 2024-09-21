@@ -252,6 +252,10 @@ if data_query_button:
         # 결측치 확인
         print(selected_data[['전용면적', '거래금액']].isnull().sum())
         
+        # 데이터 타입 확인 및 형변환
+        selected_data['전용면적'] = pd.to_numeric(selected_data['전용면적'], errors='coerce')
+        selected_data['거래금액'] = pd.to_numeric(selected_data['거래금액'], errors='coerce')
+        
         # 결측치 제거
         selected_data = selected_data.dropna(subset=['전용면적', '거래금액'])
         
