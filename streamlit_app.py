@@ -249,3 +249,16 @@ if data_query_button:
         # 거래량 합계
         total_volume = monthly_transactions['거래량'].sum()
         st.write(f"거래량 합계: {total_volume} 🏆")
+
+        # 면적당 거래금액 계산
+        selected_data['면적당 거래금액'] = selected_data['거래금액'] / selected_data['전용면적']
+        
+        # 지역별 평균 면적당 거래금액 계산
+        average_price_per_area = selected_data.groupby('시군구')['면적당 거래금액'].mean().reset_index()
+        
+        # 컬럼 이름 변경
+        average_price_per_area.columns = ['시군구', '평균 면적당 거래금액']
+        
+        # 결과 표시
+        st.header("지역별 평균 면적당 거래금액 💰")
+        st.dataframe(average_price_per_area)
