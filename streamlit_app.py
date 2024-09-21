@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+import os
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -39,10 +40,19 @@ start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, �
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
 data_query_button = st.sidebar.button("데이터 조회")
 
+# 폰트 등록 함수
+def register_fonts():
+    font_dirs = [os.path.join(os.getcwd(), 'customFonts')]
+    font_files = fm.findSystemFonts(fontpaths=font_dirs)
+
+    for font_file in font_files:
+        fm.fontManager.addfont(font_file)
+    fm._load_fontmanager(try_read_cache=False)
+
+register_fonts()
+
 # 시스템에 설치된 폰트 목록 추출
-fonts = fm.findSystemFonts(fontpaths=None)
-font_names = [fm.FontProperties(fname=font).get_name() for font in fonts]
-font_names.append('AppleGothic')  # AppleGothic 추가
+font_names = [f.name for f in fm.fontManager.ttflist]
 selected_font = st.sidebar.selectbox("폰트를 선택하세요:", font_names)
 
 # 현재 날짜를 기준으로 기간 설정
