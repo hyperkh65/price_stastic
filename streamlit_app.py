@@ -5,7 +5,6 @@ from datetime import datetime
 import json
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
-import os
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -40,19 +39,10 @@ start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, �
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
 data_query_button = st.sidebar.button("데이터 조회")
 
-# 폰트 등록 함수
-def register_fonts():
-    font_dirs = [os.path.join(os.getcwd(), 'customFonts')]
-    font_files = fm.findSystemFonts(fontpaths=font_dirs)
-
-    for font_file in font_files:
-        fm.fontManager.addfont(font_file)
-    fm._load_fontmanager(try_read_cache=False)
-
-register_fonts()
-
 # 시스템에 설치된 폰트 목록 추출
-font_names = [f.name for f in fm.fontManager.ttflist]
+fonts = fm.findSystemFonts(fontpaths=None)
+font_names = [fm.FontProperties(fname=font).get_name() for font in fonts]
+font_names.append('AppleGothic')  # AppleGothic 추가
 selected_font = st.sidebar.selectbox("폰트를 선택하세요:", font_names)
 
 # 현재 날짜를 기준으로 기간 설정
@@ -172,12 +162,12 @@ if data_query_button:
 
         # 매월 거래량 시각화
         plt.figure(figsize=(10, 6))
+        plt.rcParams['font.family'] = selected_font  # 사용자 선택한 폰트 적용
         plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
         plt.title('Monthly Transactions', fontsize=16)
         plt.xlabel('Year-Month', fontsize=14)
         plt.ylabel('Transactions', fontsize=14)
         plt.xticks(rotation=45)
-        plt.rcParams['font.family'] = selected_font  # 사용자 선택한 폰트 적용
         plt.tight_layout()
         st.pyplot(plt)
 
@@ -188,11 +178,11 @@ if data_query_button:
 
         # 원형 그래프로 거래 비중 시각화
         plt.figure(figsize=(8, 8))
+        plt.rcParams['font.family'] = selected_font  # 사용자 선택한 폰트 적용
         regional_summary = selected_data['시군구'].value_counts()
         plt.pie(regional_summary, labels=regional_summary.index, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
         plt.title('Market Share by Region', fontsize=16)
         plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        plt.rcParams['font.family'] = selected_font  # 사용자 선택한 폰트 적용
         st.pyplot(plt)
 
     else:
