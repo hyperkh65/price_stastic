@@ -1,94 +1,195 @@
 import streamlit as st
 import pandas as pd
+import PublicDataReader as pdr
+from datetime import datetime
 import json
+from io import BytesIO
 import matplotlib.pyplot as plt
 import seaborn as sns
-from datetime import datetime
 
-# 지역 코드 변환기 클래스
+# Streamlit secrets에서 API 키 및 파일 경로 가져오기
+service_key = st.secrets["general"]["SERVICE_KEY"]
+json_file_path = "district.json"
+
+# PublicDataReader API 서비스 키 사용
+api = pdr.TransactionPrice(service_key)
+
+# DistrictConverter 클래스 정의
 class DistrictConverter:
     def __init__(self):
         self.districts = self.__read_district_file()
 
     def __read_district_file(self):
-        with open('district.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
+        with open(json_file_path, 'r', encoding='utf-8') as f:
+            return json.loads(f.read())
 
-    def get_district_code(self, si_do_name):
-        return self.districts.get(si_do_name, None)
+    def get_si_do_code(self, si_do_name):
+        for district in self.districts:
+            if si_do_name == district["si_do_name"]:
+                return district["si_do_code"]
 
-# 데이터 로드 함수
-def load_data(si_do_name, start_date, end_date):
-    # 실제 데이터 로드 로직을 구현해야 함
-    # 예시로 더미 데이터를 반환
-    date_range = pd.date_range(start=start_date, end=end_date, freq='M')
-    data = pd.DataFrame({
-        'date': date_range,
-        'district': ['District A', 'District B'] * (len(date_range) // 2),
-        'transaction_amount': [30000000, 35000000] * (len(date_range) // 2),
-        'area': [50, 60] * (len(date_range) // 2)
-    })
-    return data
+    def get_sigungu(self, si_do_code):
+        for district in self.districts:
+            if si_do_code == district["si_do_code"]:
+                return district["sigungu"]
 
-# 시각화 함수들
+# 데이터 로드 및 시각화 함수
+def load_and_visualize_data(si_do_name, start_year_month, end_year_month):
+    all_data = pd.DataFrame()
+
+    # 데이터 수집
+    if si_do_name == "전국":
+        for district in converter.districts:
+            si_do_code = district["si_do_code"]
+            sigungu_list = district["sigungu"]
+            for sigungu in sigungu_list:
+                sigungu_code = sigungu["sigungu_code"]
+                sigungu_name = sigungu["sigungu_name"]
+
+                st.write(f"Processing data for {sigungu_name} ({sigungu_code})")
+
+                df = api.get_data(
+                    property_type="아파트",
+                    trade_type="매매",
+                    sigungu_code=sigungu_code,
+                    start_year_month=start_year_month,
+                    end_year_month=end_year_month
+                )
+
+                df["sigungu_name"] = sigungu_name
+                df["si_do_name"] = district["si_do_name"]
+
+                all_data = pd.concat([all_data, df], ignore_index=True)
+    else:
+        si_do_code = converter.get_si_do_code(si_do_name)
+        sigungu_list = converter.get_sigungu(si_do_code)
+
+        for sigungu in sigungu_list:
+            sigungu_code = sigungu["sigungu_code"]
+            sigungu_name = sigungu["sigungu_name"]
+
+            st.write(f"Processing data for {sigungu_name} ({sigungu_code})")
+
+            df = api.get_data(
+                property_type="아파트",
+                trade_type="매매",
+                sigungu_code=sigungu_code,
+                start_year_month=start_year_month,
+                end_year_month=end_year_month
+            )
+
+            df["sigungu_name"] = sigungu_name
+            df["si_do_name"] = si_do_name
+
+            all_data = pd.concat([all_data, df], ignore_index=True)
+
+    # 컬럼 이름 변환
+    columns_to_select = {
+        "si_do_name": "시도",
+        "sigungu_name": "시군구",
+        "umdNm": "법정동",
+        "roadNm": "도로명",
+        "bonbun": "지번",
+        "aptNm": "아파트",
+        "buildYear": "건축년도",
+        "excluUseAr": "전용면적",
+        "floor": "층",
+        "dealYear": "거래년도",
+        "dealMonth": "거래월",
+        "dealDay": "거래일",
+        "dealAmount": "거래금액",
+        "aptSeq": "일련번호",
+        "dealingGbn": "거래유형",
+        "estateAgentSggNm": "중개사소재지",
+        "cdealType": "해제여부",
+        "cdealDay": "해제사유발생일"
+    }
+
+    selected_data = all_data.rename(columns=columns_to_select)[list(columns_to_select.values())]
+
+    # 데이터 표로 표시
+    st.write("### 조회 결과")
+    st.dataframe(selected_data.style.set_table_attributes('style="width: 100%; white-space: nowrap;"'))
+
+    # 시각화
+    visualize_data(selected_data)
+
+    return selected_data
+
+# 데이터 시각화 함수
 def visualize_data(data):
-    st.subheader("시각화 결과")
-
+    plt.figure(figsize=(10, 6))
+    
     # 히스토그램
-    st.subheader("매매가 분포 히스토그램")
-    plt.figure(figsize=(10, 5))
-    sns.histplot(data['transaction_amount'], bins=10, kde=True)
-    st.pyplot(plt)
+    plt.subplot(2, 2, 1)
+    sns.histplot(data['거래금액'], bins=20, kde=True)
+    plt.title('Price Distribution')
 
     # 상자 수염 그림
-    st.subheader("지역별 매매가 상자 수염 그림")
-    plt.figure(figsize=(10, 5))
-    sns.boxplot(x='district', y='transaction_amount', data=data)
-    st.pyplot(plt)
+    plt.subplot(2, 2, 2)
+    sns.boxplot(x=data['거래금액'])
+    plt.title('Price Boxplot')
 
     # 시간 시리즈 그래프
-    st.subheader("시간에 따른 매매가 변화")
-    monthly_avg = data.groupby(data['date'].dt.to_period('M')).mean()
-    plt.figure(figsize=(10, 5))
-    plt.plot(monthly_avg.index.astype(str), monthly_avg['transaction_amount'], marker='o')
-    plt.xticks(rotation=45)
-    st.pyplot(plt)
+    plt.subplot(2, 2, 3)
+    data['date'] = pd.to_datetime(data[['거래년도', '거래월', '거래일']])
+    monthly_avg = data.groupby(data['date'].dt.to_period('M')).mean()['거래금액']
+    plt.plot(monthly_avg.index.astype(str), monthly_avg.values)
+    plt.title('Monthly Average Price')
 
     # 산점도
-    st.subheader("전용면적과 매매가의 관계")
-    plt.figure(figsize=(10, 5))
-    sns.scatterplot(x='area', y='transaction_amount', data=data)
+    plt.subplot(2, 2, 4)
+    plt.scatter(data['전용면적'], data['거래금액'])
+    plt.title('Price vs Area')
+
+    plt.tight_layout()
     st.pyplot(plt)
 
-# 인터페이스 설정
-st.title("부동산 매매가 데이터 분석")
-st.markdown("## 데이터 조회를 위해 아래 정보를 입력하세요.")
+# 사용자 입력 받기
+st.title("부동산 데이터 조회")
+si_do_name = st.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "전국")
+start_year_month = st.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "")
+end_year_month = st.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
 
-# 사용자 입력
-si_do_name = st.text_input("시/도명 입력:", "서울특별시")
-start_date = st.date_input("시작 날짜", value=datetime(2020, 1, 1))
-end_date = st.date_input("종료 날짜", value=datetime(2021, 12, 31))
+# 현재 날짜를 기준으로 기간 설정
+now = datetime.now()
+if not start_year_month:
+    start_year_month = f"{now.year}01"
+if not end_year_month:
+    end_year_month = now.strftime("%Y%m")
 
+# 데이터를 조회하는 버튼을 추가하여, 사용자 입력 후에만 데이터 처리를 시작합니다.
 if st.button("데이터 조회"):
-    district_converter = DistrictConverter()
-    district_code = district_converter.get_district_code(si_do_name)
+    if si_do_name and start_year_month and end_year_month:
+        # DistrictConverter 인스턴스 생성
+        converter = DistrictConverter()
 
-    if district_code is None:
-        st.error("유효하지 않은 시/도명입니다.")
+        selected_data = load_and_visualize_data(si_do_name, start_year_month, end_year_month)
+
+        # 데이터 다운로드 옵션 추가
+        st.write("### 데이터 다운로드")
+        excel_filename = f"{si_do_name}_{start_year_month}_{end_year_month}_매매.xlsx"
+        csv_filename = f"{si_do_name}_{start_year_month}_{end_year_month}_매매.csv"
+
+        # 엑셀 다운로드 (BytesIO로 메모리에 저장)
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            selected_data.to_excel(writer, index=False)
+        output.seek(0)
+
+        st.download_button(
+            label="엑셀로 다운로드",
+            data=output,
+            file_name=excel_filename,
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+        # CSV 다운로드
+        st.download_button(
+            label="CSV로 다운로드",
+            data=selected_data.to_csv(index=False),
+            file_name=csv_filename,
+            mime='text/csv'
+        )
     else:
-        data = load_data(si_do_name, start_date, end_date)
-        st.dataframe(data)  # 표 먼저 표시
-        visualize_data(data)  # 시각화 호출
-
-# 진행률 및 상태 표시
-st.sidebar.markdown("## 진행 상태")
-st.sidebar.write(f"현재 검토 지역: {si_do_name}")
-if start_date < datetime.now().date():
-    elapsed_days = (datetime.now().date() - start_date).days
-    total_days = (end_date - start_date).days
-    progress = 100 * (elapsed_days / total_days) if total_days > 0 else 0
-else:
-    progress = 0
-st.sidebar.write(f"진행율: {progress:.2f}%")
-st.sidebar.write("진행한 검사 수: 50")
-st.sidebar.write("남은 검사 수: 10")
+        st.error("모든 필드를 채워주세요.")
