@@ -161,9 +161,11 @@ if data_query_button:
         plt.figure(figsize=(12, 6))
         sns.set_theme(style="whitegrid")
         sns.barplot(data=monthly_transactions, x='거래월', y='거래량', hue='거래년도', palette='Blues', alpha=0.8)
-        plt.title('매월 거래량', fontsize=16)
-        plt.xlabel('거래월', fontsize=14)
-        plt.ylabel('거래량', fontsize=14)
+        
+        # 한글 글꼴 설정
+        plt.title('매월 거래량', fontsize=16, fontfamily='sans-serif')
+        plt.xlabel('거래월', fontsize=14, fontfamily='sans-serif')
+        plt.ylabel('거래량', fontsize=14, fontfamily='sans-serif')
         plt.xticks(rotation=45)
         plt.legend(title='거래년도', fontsize=12)
         plt.tight_layout()
