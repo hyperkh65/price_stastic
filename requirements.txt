@@ -1,13 +1,8 @@
-streamlit 
+streamlit
 pandas
-PublicDataReader
-datetime
-xlsxwriter
-numpy
 matplotlib
 seaborn
-geopandas
-plotly
-openpyxl
 folium
 st_folium
+openpyxl  # Excel 파일을 읽고 쓰기 위해 필요
+xlsxwriter  # Excel 파일 쓰기 위해 필요
