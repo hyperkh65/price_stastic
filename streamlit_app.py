@@ -39,8 +39,7 @@ class DistrictConverter:
             if si_do_code == district["si_do_code"]:
                 return district["sigungu"]
 
-def generate_html_report(figures, dataframes):
-    html_content = """
+ html_content = """
     <html>
     <head>
         <title>부동산 데이터 분석 리포트</title>
@@ -48,6 +47,9 @@ def generate_html_report(figures, dataframes):
             .table {
                 width: 100%;
                 border-collapse: collapse;
+                max-height: 400px; /* 최대 높이 설정 */
+                overflow-y: auto; /* 수직 스크롤 추가 */
+                display: block; /* 블록으로 표시 */
             }
             .table th, .table td {
                 border: 1px solid #ddd;
@@ -57,6 +59,9 @@ def generate_html_report(figures, dataframes):
                 background-color: #f2f2f2;
                 text-align: left;
             }
+            .graph {
+                cursor: pointer; /* 클릭 가능 표시 */
+            }
         </style>
     </head>
     <body>
@@ -65,7 +70,7 @@ def generate_html_report(figures, dataframes):
     # 오른쪽 출력 순서에 맞춰 추가
     for title, df in dataframes.items():
         html_content += f"<h2>{title}</h2>"
-        html_content += df.to_html(classes='table', border=0, escape=False)
+        html_content += f'<div class="table">{df.to_html(classes="table", border=0, escape=False)}</div>'
     
     for title, fig in figures.items():
         img = BytesIO()
@@ -73,8 +78,40 @@ def generate_html_report(figures, dataframes):
         img.seek(0)
         img_base64 = base64.b64encode(img.getvalue()).decode()
         html_content += f"<h2>{title}</h2>"
-        html_content += f'<img src="data:image/png;base64,{img_base64}" />'
+        html_content += f'<div class="graph"><img src="data:image/png;base64,{img_base64}" /></div>'
     
+    # JavaScript 추가: 이미지 클릭 시 확대 표시
+    html_content += """
+    <script>
+        document.querySelectorAll('.graph img').forEach(item => {
+            item.addEventListener('click', event => {
+                const img = event.target.src;
+                const modal = document.createElement('div');
+                modal.style.position = 'fixed';
+                modal.style.left = '0';
+                modal.style.top = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                modal.style.zIndex = '1000';
+                const imgModal = document.createElement('img');
+                imgModal.src = img;
+                imgModal.style.maxWidth = '90%';
+                imgModal.style.maxHeight = '90%';
+                imgModal.style.position = 'absolute';
+                imgModal.style.top = '50%';
+                imgModal.style.left = '50%';
+                imgModal.style.transform = 'translate(-50%, -50%)';
+                modal.appendChild(imgModal);
+                modal.addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+                document.body.appendChild(modal);
+            });
+        });
+    </script>
+    """
+
     html_content += "</body></html>"
     return html_content
 
