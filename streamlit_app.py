@@ -309,5 +309,4 @@ if data_query_button:
         # 다운로드 버튼 추가
         st.sidebar.markdown(get_download_link(html_report), unsafe_allow_html=True)
 
-if __name__ == "__main__":
 
