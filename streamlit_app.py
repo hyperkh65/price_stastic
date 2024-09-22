@@ -8,6 +8,7 @@ import matplotlib.font_manager as fm
 import os
 import base64
 from io import BytesIO
+from report import generate_html_report, get_download_link
 
 # 페이지 설정을 코드 상단에 위치시킴
 st.set_page_config(layout="wide")  # 여기를 추가합니다.
@@ -304,7 +305,7 @@ if data_query_button:
             "법정동별 거래 빈도가 높은 아파트": top_apartments
         }
 
-        # HTML 리포트 생성
+       # HTML 리포트 생성
         html_report = generate_html_report(figures, dataframes)
 
         # 다운로드 버튼 추가
