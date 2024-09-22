@@ -61,16 +61,7 @@ def generate_html_report(figures, dataframes):
 def get_download_link(html_content, filename="report.html"):
     b64 = base64.b64encode(html_content.encode()).decode()
     return f'<a href="data:text/html;base64,{b64}" download="{filename}">다운로드 HTML 리포트</a>'
-    
-# HTML 리포트 생성
-html_report = generate_html_report(figures, dataframes)
-
-# 다운로드 버튼 추가
-st.sidebar.markdown(get_download_link(html_report), unsafe_allow_html=True)
-
-# HTML 코드 복사하기 기능 추가
-if st.sidebar.button("HTML 코드 복사하기"):
-    st.sidebar.text_area("HTML 코드", html_report, height=300)    
+      
 
 # 사용자 입력 받기
 st.title("부동산 데이터 조회")
