@@ -42,6 +42,9 @@ class DistrictConverter:
 import base64
 from io import BytesIO
 
+import base64
+from io import BytesIO
+
 def generate_html_report(figures, dataframes):
     html_content = """
     <html>
@@ -82,6 +85,9 @@ def generate_html_report(figures, dataframes):
                 font-size: 12px;
                 color: #777;
             }
+            .filter {
+                margin-bottom: 10px;
+            }
         </style>
     </head>
     <body>
@@ -93,7 +99,16 @@ def generate_html_report(figures, dataframes):
     # 오른쪽 출력 순서에 맞춰 추가
     for title, df in dataframes.items():
         html_content += f"<h2>{title}</h2>"
-        html_content += f'<div class="table-container"><div class="table">{df.to_html(classes="table", border=0, escape=False)}</div></div>'
+        html_content += f"""
+        <div class="filter">
+            <input type="text" onkeyup="filterTable(this, '{title}')" placeholder="필터 입력..." />
+        </div>
+        <div class="table-container">
+            <div class="table" id="{title}">
+                {df.to_html(classes="table", border=0, escape=False)}
+            </div>
+        </div>
+        """
     
     for title, fig in figures.items():
         img = BytesIO()
@@ -103,7 +118,7 @@ def generate_html_report(figures, dataframes):
         html_content += f"<h2>{title}</h2>"
         html_content += f'<div class="graph"><img src="data:image/png;base64,{img_base64}" /></div>'
     
-    # JavaScript 추가: 이미지 클릭 시 확대 표시
+    # JavaScript 추가: 이미지 클릭 시 확대 표시 및 필터 기능
     html_content += """
     <script>
         document.querySelectorAll('.graph img').forEach(item => {
@@ -132,9 +147,29 @@ def generate_html_report(figures, dataframes):
                 document.body.appendChild(modal);
             });
         });
+
+        function filterTable(input, title) {
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById(title);
+            const rows = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+                let found = false;
+
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(filter)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                rows[i].style.display = found ? "" : "none";
+            }
+        }
     </script>
     """
-    
+
     html_content += """
         <div class="footer">
             <p>이 보고서는 자동 생성되었습니다.</p>
@@ -154,9 +189,9 @@ def get_download_link(html_content, filename="report.html"):
 
 # 사용자 입력 받기
 st.title("부동산 데이터 조회")
-si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "전국")
-start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "")
-end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "")
+si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "서울특별시")
+start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "202407")
+end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "202408")
 data_query_button = st.sidebar.button("데이터 조회")
 
 # 폰트 파일 경로 설정
