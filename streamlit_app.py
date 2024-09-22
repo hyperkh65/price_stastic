@@ -39,6 +39,9 @@ class DistrictConverter:
             if si_do_code == district["si_do_code"]:
                 return district["sigungu"]
 
+import base64
+from io import BytesIO
+
 def generate_html_report(figures, dataframes):
     html_content = """
     <html>
@@ -56,10 +59,14 @@ def generate_html_report(figures, dataframes):
             h2 {
                 color: #555;
             }
+            .table-container {
+                max-height: 400px; /* 원하는 높이 설정 */
+                overflow-y: auto; /* 수직 스크롤 적용 */
+                margin-bottom: 20px;
+            }
             .table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-bottom: 20px;
             }
             .table th, .table td {
                 border: 1px solid #ddd;
@@ -86,7 +93,7 @@ def generate_html_report(figures, dataframes):
     # 오른쪽 출력 순서에 맞춰 추가
     for title, df in dataframes.items():
         html_content += f"<h2>{title}</h2>"
-        html_content += f'<div class="table">{df.to_html(classes="table", border=0, escape=False)}</div>'
+        html_content += f'<div class="table-container"><div class="table">{df.to_html(classes="table", border=0, escape=False)}</div></div>'
     
     for title, fig in figures.items():
         img = BytesIO()
