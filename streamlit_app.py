@@ -261,54 +261,48 @@ if data_query_button:
         # 결과를 표로 표시
         st.header("법정동별 거래 빈도가 높은 아파트 🌍")
         st.dataframe(top_apartments)
-        # 각 그래프를 이미지로 저장 (예: 매월 거래량 그래프)
-        monthly_plot_path = "monthly_transactions.png"
-        plt.figure(figsize=(10, 6))
-        plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
-        plt.xlabel('연도-월', fontsize=14)
-        plt.ylabel('거래량', fontsize=14)
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-        plt.savefig(monthly_plot_path)
-        plt.close()  # 현재 플롯 닫기
-        
-        # HTML로 출력할 콘텐츠 생성
-        html_report = f"""
-        <!DOCTYPE html>
-        <html lang="ko">
-        <head>
-            <meta charset="UTF-8">
-            <title>부동산 데이터 분석 보고서</title>
-            <style>
-                table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                }}
-                th, td {{
-                    border: 1px solid #ddd;
-                    padding: 8px;
-                    text-align: center;
-                }}
-                tr:nth-child(even) {{background-color: #f2f2f2;}}
-                tr:hover {{background-color: #ddd;}}
-                th {{
-                    padding-top: 12px;
-                    padding-bottom: 12px;
-                    background-color: #4CAF50;
-                    color: white;
-                }}
-            </style>
-        </head>
-        <body>
-            <h1>{si_do_name} 부동산 데이터 분석</h1>
-            {html_table}  <!-- 이전에 생성한 HTML 테이블 -->
-            <h2>매월 거래량 그래프</h2>
-            <img src="{monthly_plot_path}" alt="매월 거래량 그래프">
-        </body>
-        </html>
-        """
-        
-        # "이 보고서를 HTML 문서로 저장" 버튼
-        if st.button("이 보고서를 HTML 문서로 저장"):
-            # 
+
+
+# HTML 테이블 생성 (예시로 selected_data를 사용)
+html_table = selected_data.to_html(index=False, escape=False)
+
+# HTML로 출력할 콘텐츠 생성
+html_report = f"""
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>부동산 데이터 분석 보고서</title>
+    <style>
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        th, td {{
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }}
+        tr:nth-child(even) {{background-color: #f2f2f2;}}
+        tr:hover {{background-color: #ddd;}}
+        th {{
+            padding-top: 12px;
+            padding-bottom: 12px;
+            background-color: #4CAF50;
+            color: white;
+        }}
+    </style>
+</head>
+<body>
+    <h1>{si_do_name} 부동산 데이터 분석</h1>
+    {html_table}
+    <h2>매월 거래량 그래프</h2>
+    <img src="{monthly_plot_path}" alt="매월 거래량 그래프">
+</body>
+</html>
+"""
+
+# "이 보고서를 HTML 문서로 저장" 버튼
+if st.button("이 보고서를 HTML 문서로 저장"):
+    st.text_area("복사할 HTML 코드", html_report, height=300)
            
