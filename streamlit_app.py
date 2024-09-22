@@ -441,7 +441,7 @@ if data_query_button:
         def get_download_link(filename="report.html"):
             with open(filename, "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
-            return f'<a href="data:file/html;base64,{b64}" download="{filename}">다운로드 HTML 리포트</a>'
+            return f'<a href="data:file/html;base64,{b64}" download="{filename}">무료보고서 다운받으세요</a>'
         
         # 다운로드 링크 표시
         st.sidebar.markdown(get_download_link("report.html"), unsafe_allow_html=True)
