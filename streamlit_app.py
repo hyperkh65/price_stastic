@@ -194,7 +194,7 @@ si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특�
 start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "202407")
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "202408")
 data_query_button = st.sidebar.button("데이터 조회")
-st.sidebar.markdown("### Made by Kimhyun ㅣ Version : 1.0")  # 맨 아래에 추가
+st.sidebar.markdown("### ⚙️ Made by Kimhyun ㅣ Version : 1.0")  # 맨 아래에 추가
 
 # 폰트 파일 경로 설정
 current_dir = os.getcwd()
