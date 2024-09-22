@@ -305,20 +305,19 @@ if data_query_button:
             "법정동별 거래 빈도가 높은 아파트": top_apartments
         }
 
-         # HTML 리포트 생성
+      # HTML 리포트 생성
         html_report = generate_html_report(figures, dataframes)
         
-        # HTML 내용을 파일로 저장
-        html_file_path = "temp_report.html"
-        with open(html_file_path, "w") as f:
+        # HTML 리포트를 파일로 저장
+        with open("report.html", "w", encoding="utf-8") as f:
             f.write(html_report)
         
-        # 다운로드 링크 제공
-        def get_html_download_link(file_path):
-            with open(file_path, "rb") as f:
+        # 다운로드 링크 생성
+        def get_download_link(filename="report.html"):
+            with open(filename, "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
-            return f'<a href="data:file/html;base64,{b64}" download="{os.path.basename(file_path)}">HTML 코드 다운로드</a>'
+            return f'<a href="data:file/html;base64,{b64}" download="{filename}">다운로드 HTML 리포트</a>'
         
-        # 다운로드 링크 출력
-        st.sidebar.markdown(get_html_download_link(html_file_path), unsafe_allow_html=True)
+        # 다운로드 링크 표시
+        st.sidebar.markdown(get_download_link("report.html"), unsafe_allow_html=True)
 
