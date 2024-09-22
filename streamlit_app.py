@@ -38,7 +38,7 @@ class DistrictConverter:
         for district in self.districts:
             if si_do_code == district["si_do_code"]:
                 return district["sigungu"]
-
+def generate_html_report(figures, dataframes):
  html_content = """
     <html>
     <head>
