@@ -131,8 +131,6 @@ def generate_html_report(figures, dataframes):
             });
         });
     </script>
-    """
-
       html_content += """
         <div class="footer">
             <p>이 보고서는 자동 생성되었습니다.</p>
