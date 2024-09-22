@@ -174,7 +174,7 @@ def generate_html_report(figures, dataframes):
 
     html_content += """
         <div class="footer">
-            <p>이 보고서는 투데이즈, 아보다 에서만 배포하면 이를 무단 복제 및 배포하는 행위는 금지합니다.</p>
+            <p>이 보고서는 투데이즈, 아보다에서만 배포가 허락되며, 이를 무단 복제 및 배포하는 행위는 엄격히 금지합니다.</p>
         </div>
     </body>
     </html>
