@@ -40,7 +40,7 @@ class DistrictConverter:
                 return district["sigungu"]
             
 
-def generate_html_report(figures, dataframes, si_do_name, start_year_month, end_year_month):
+def generate_html_report(si_do_name, start_year_month, end_year_month):
     html_content = """
     <html>
     <head>
