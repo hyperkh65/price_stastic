@@ -434,7 +434,7 @@ if data_query_button:
             plt.ylabel('거래량', fontsize=14)
             plt.xticks(rotation=45)
             plt.tight_layout()
-                        st.pyplot(plt)
+            st.pyplot(plt)
 
             # 지역별 거래량 표 추가
             regional_summary = regional_area_counts.reset_index()
