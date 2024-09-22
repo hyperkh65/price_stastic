@@ -9,6 +9,9 @@ import os
 import base64
 from io import BytesIO
 
+# 페이지 설정을 코드 상단에 위치시킴
+st.set_page_config(layout="wide")  # 여기를 추가합니다.
+
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
 json_file_path = "district.json"
@@ -307,4 +310,4 @@ if data_query_button:
         st.sidebar.markdown(get_download_link(html_report), unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    st.set_page_config(layout="wide")
+
