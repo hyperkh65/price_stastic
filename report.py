@@ -1,16 +1,11 @@
 import base64
 from io import BytesIO
+import matplotlib.pyplot as plt
 
+# HTML 생성 함수
 def generate_html_report(figures, dataframes):
-    html_content = """
-    <html>
-        <head>
-            <title>부동산 데이터 분석 리포트</title>
-        </head>
-        <body>
-            <h1>부동산 데이터 분석 리포트</h1>
-    """
-
+    html_content = "<html><head><title>부동산 데이터 분석 리포트</title></head><body>"
+    
     for title, fig in figures.items():
         img = BytesIO()
         fig.savefig(img, format='png')
@@ -21,10 +16,12 @@ def generate_html_report(figures, dataframes):
     
     for title, df in dataframes.items():
         html_content += f"<h2>{title}</h2>"
-        html_content += df.to_html(index=False)
+        html_content += df.to_html()
     
-    html_content += """
-        </body>
-    </html>
-    """
+    html_content += "</body></html>"
     return html_content
+
+# 다운로드 링크 생성 함수
+def get_download_link(html_content, filename="report.html"):
+    b64 = base64.b64encode(html_content.encode()).decode()
+    return f'<a href="data:text/html;base64,{b64}" download="{filename}">리포트 다운로드</a>'
