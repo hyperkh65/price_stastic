@@ -92,7 +92,9 @@ def generate_html_report(figures, dataframes):
     </head>
     <body>
         <h1>부동산 매매가 분석 보고서</h1>
-        <p>작성자: 투데이즈 ㅣ 아보다 (2days.kr ㅣ aboda.kr)</p>
+        <p>작성자: KH
+        <p>홈페이지: https://2days.kr
+        <p>블로그 : https://aboda.kr
         <p>연락처: <a href="mailto:hyperkh65@gmail.com">hyperkh65@gmail.com</a></p>
     """
 
@@ -172,7 +174,7 @@ def generate_html_report(figures, dataframes):
 
     html_content += """
         <div class="footer">
-            <p>이 보고서는 아보다 및 투데이즈에서 제작하였으며 무단 복제 및 배포를 금지합니다.</p>
+            <p>이 보고서는 투데이즈, 아보다 에서만 배포하면 이를 무단 복제 및 배포하는 행위는 금지합니다.</p>
         </div>
     </body>
     </html>
@@ -188,7 +190,7 @@ def get_download_link(html_content, filename="report.html"):
       
 
 # 사용자 입력 받기
-st.title("부동산 데이터 조회")
+st.title("🏡 공공데이터정보 부동산실거래가 분석하기 😃")
 st.sidebar.markdown("### 📋 부동산실거래가보고서")  # 맨 위에 추가
 si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "서울특별시")
 start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "202407")
