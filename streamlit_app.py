@@ -6,6 +6,8 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import os
+import base64
+from io import BytesIO
 
 # Streamlit secrets에서 API 키 및 파일 경로 가져오기
 service_key = st.secrets["general"]["SERVICE_KEY"]
@@ -32,6 +34,30 @@ class DistrictConverter:
         for district in self.districts:
             if si_do_code == district["si_do_code"]:
                 return district["sigungu"]
+
+# HTML 생성 함수
+def generate_html_report(figures, dataframes):
+    html_content = "<html><head><title>부동산 데이터 분석 리포트</title></head><body>"
+    
+    for title, fig in figures.items():
+        img = BytesIO()
+        fig.savefig(img, format='png')
+        img.seek(0)
+        img_base64 = base64.b64encode(img.getvalue()).decode()
+        html_content += f"<h2>{title}</h2>"
+        html_content += f'<img src="data:image/png;base64,{img_base64}" />'
+    
+    for title, df in dataframes.items():
+        html_content += f"<h2>{title}</h2>"
+        html_content += df.to_html()
+    
+    html_content += "</body></html>"
+    return html_content
+
+# 다운로드 링크 생성 함수
+def get_download_link(html_content, filename="report.html"):
+    b64 = base64.b64encode(html_content.encode()).decode()
+    return f'<a href="data:file/html;base64,{b64}" download="{filename}">다운로드 HTML 리포트</a>'
 
 # 사용자 입력 받기
 st.title("부동산 데이터 조회")
@@ -160,18 +186,18 @@ if data_query_button:
         selected_data['전용면적'] = pd.to_numeric(selected_data['전용면적'], errors='coerce')
         selected_data.dropna(subset=['전용면적'], inplace=True)  # 결측치 삭제
 
-       # 매월 거래량
+        # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         
         # 매월 거래량 시각화
         st.header("매월 거래량 📅")
-        plt.figure(figsize=(10, 6))
+        fig_monthly = plt.figure(figsize=(10, 6))
         plt.bar(monthly_transactions['거래년도'].astype(str) + '-' + monthly_transactions['거래월'].astype(str), monthly_transactions['거래량'], color='skyblue')
         plt.xlabel('연도-월', fontsize=14)
         plt.ylabel('거래량', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
-        st.pyplot(plt)
+        st.pyplot(fig_monthly)
         
         # 매월 거래량 표 추가
         monthly_summary = monthly_transactions.groupby('거래년도')['거래량'].sum().reset_index()
@@ -182,7 +208,6 @@ if data_query_button:
         regional_summary = selected_data.groupby('시군구').size().reset_index(name='거래량')
         regional_summary['총계'] = regional_summary['거래량'].sum()  # 총계 열 추가
     
-
         # 전용면적 범위별 거래량
         bins = [0, 80, 100, 120, 140, float('inf')]
         labels = ['0~80', '80~100', '100~120', '120~140', '140 이상']
@@ -191,13 +216,13 @@ if data_query_button:
         
         # 전용면적 범위별 거래량 시각화
         st.header("전용면적 범위별 거래량 📏")
-        plt.figure(figsize=(10, 6))
+        fig_area = plt.figure(figsize=(10, 6))
         plt.bar(area_counts.index, area_counts.values, color='#2196F3', edgecolor='none')  # 색상 변경 및 아웃라인 제거
         plt.xlabel('면적 범위', fontsize=14)
         plt.ylabel('거래량', fontsize=14)
         plt.xticks(rotation=45)
         plt.tight_layout()
-        st.pyplot(plt)
+        st.pyplot(fig_area)
         
         # 전용면적 범위별 거래량 표 추가
         area_summary = area_counts.reset_index()
@@ -214,13 +239,13 @@ if data_query_button:
         else:
             # 지역별 면적 대비 거래량 시각화
             st.header("지역별 면적 대비 거래량 🌍")
-            plt.figure(figsize=(10, 6))
+            fig_regional = plt.figure(figsize=(10, 6))
             plt.bar(regional_area_counts.index, regional_area_counts.values, color='#FFC107', edgecolor='none')  # 색상 변경 및 아웃라인 제거
             plt.xlabel('시군구', fontsize=14)
             plt.ylabel('거래량', fontsize=14)
             plt.xticks(rotation=45)
             plt.tight_layout()
-            st.pyplot(plt)
+            st.pyplot(fig_regional)
         
             # 지역별 면적 대비 거래량 표 추가
             regional_summary = regional_area_counts.reset_index()
@@ -228,20 +253,19 @@ if data_query_button:
             regional_summary['총계'] = regional_summary['거래량'].sum()  # 총계 열 추가
             st.dataframe(regional_summary)
         
-        
         # 거래유형 분석
-            transaction_types = selected_data['거래유형'].value_counts()
-            
-            # 데이터가 비어 있는 경우 처리
-            if transaction_types.empty:
-                st.write("거래유형 데이터가 없습니다.")
-            else:
-                # 거래유형 분석 시각화
-                st.header("거래유형 분석 🏠")
-                plt.figure(figsize=(10, 6))
-                plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#FF5733', '#33FF57'])  # 색상 변경
-                plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-                st.pyplot(plt)
+        transaction_types = selected_data['거래유형'].value_counts()
+        
+        # 데이터가 비어 있는 경우 처리
+        if transaction_types.empty:
+            st.write("거래유형 데이터가 없습니다.")
+        else:
+            # 거래유형 분석 시각화
+            st.header("거래유형 분석 🏠")
+            fig_types = plt.figure(figsize=(10, 6))
+            plt.pie(transaction_types, labels=transaction_types.index, autopct='%1.1f%%', startangle=140, colors=['#FF5733', '#33FF57'])  # 색상 변경
+            plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+            st.pyplot(fig_types)
         
         # 거래유형 분석 표
         st.dataframe(transaction_types.reset_index().rename(columns={'index': '거래유형', 0: '거래량'}))
@@ -249,10 +273,7 @@ if data_query_button:
         # 거래량 합계
         total_volume = monthly_transactions['거래량'].sum()
         st.write(f"거래량 합계: {total_volume} 🏆")
-        # selected_data 초기 상태 확인
-        print("초기 selected_data 개수:", selected_data.shape[0])
         
-       # 법정동별 인기 아파트 분석
         popular_apartments = selected_data.groupby(['법정동', '아파트']).size().reset_index(name='거래량')
         
         # 각 법정동별 거래량이 가장 높은 아파트 찾기
@@ -261,4 +282,29 @@ if data_query_button:
         # 결과를 표로 표시
         st.header("법정동별 거래 빈도가 높은 아파트 🌍")
         st.dataframe(top_apartments)
-           
+
+        # 모든 그림과 데이터프레임 저장
+        figures = {
+            "매월 거래량": fig_monthly,
+            "전용면적 범위별 거래량": fig_area,
+            "지역별 면적 대비 거래량": fig_regional,
+            "거래유형 분석": fig_types
+        }
+        
+        dataframes = {
+            "조회 결과": selected_data,
+            "매월 거래량": monthly_transactions,
+            "전용면적 범위별 거래량": area_summary,
+            "지역별 면적 대비 거래량": regional_summary,
+            "거래유형 분석": transaction_types.reset_index().rename(columns={'index': '거래유형', 0: '거래량'}),
+            "법정동별 거래 빈도가 높은 아파트": top_apartments
+        }
+
+        # HTML 리포트 생성
+        html_report = generate_html_report(figures, dataframes)
+
+        # 다운로드 버튼 추가
+        st.sidebar.markdown(get_download_link(html_report), unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    st.set_page_config(layout="wide")
