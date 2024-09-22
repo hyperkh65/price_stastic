@@ -40,18 +40,30 @@ class DistrictConverter:
                 return district["sigungu"]
             
 
-def generate_html_report(figures, dataframes):
+def generate_html_report(figures, dataframes, region, start_month, end_month):
     html_content = """
     <html>
     <head>
         <title>부동산 데이터 분석 리포트</title>
         <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+            h1 {
+                text-align: center;
+                color: #333;
+            }
+            h2 {
+                color: #555;
+            }
             .table {
                 width: 100%;
                 border-collapse: collapse;
                 max-height: 400px; /* 최대 높이 설정 */
                 overflow-y: auto; /* 수직 스크롤 추가 */
                 display: block; /* 블록으로 표시 */
+                margin-bottom: 20px;
             }
             .table th, .table td {
                 border: 1px solid #ddd;
@@ -64,11 +76,22 @@ def generate_html_report(figures, dataframes):
             .graph {
                 cursor: pointer; /* 클릭 가능 표시 */
             }
+            .footer {
+                margin-top: 40px;
+                text-align: center;
+                font-size: 12px;
+                color: #777;
+            }
         </style>
     </head>
     <body>
-    """
-    
+        <h1>부동산 매매가 분석 보고서</h1>
+        <p>지역: {region}</p>
+        <p>기간: {start_month} - {end_month}</p>
+        <p>작성자: 투데이즈 (2days)</p>
+        <p>연락처: <a href="mailto:hyperkh65@gmail.com">hyperkh65@gmail.com</a></p>
+    """.format(region=region, start_month=start_month, end_month=end_month)
+
     # 오른쪽 출력 순서에 맞춰 추가
     for title, df in dataframes.items():
         html_content += f"<h2>{title}</h2>"
@@ -114,7 +137,13 @@ def generate_html_report(figures, dataframes):
     </script>
     """
 
-    html_content += "</body></html>"
+    html_content += """
+        <div class="footer">
+            <p>이 보고서는 자동 생성되었습니다.</p>
+        </div>
+    </body>
+    </html>
+    """
     return html_content
 
 # 다운로드 링크 생성 함수
