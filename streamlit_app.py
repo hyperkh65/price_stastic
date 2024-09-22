@@ -33,6 +33,25 @@ class DistrictConverter:
             if si_do_code == district["si_do_code"]:
                 return district["sigungu"]
 
+# HTML 파일 저장 함수
+def generate_html_report(data):
+    html = """
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>부동산 데이터 보고서</title>
+    </head>
+    <body>
+        <h1>부동산 데이터 보고서</h1>
+        <h2>조회 결과</h2>
+        {data}
+    </body>
+    </html>
+    """
+    # DataFrame을 HTML로 변환
+    html_data = data.to_html(index=False)
+    return html.format(data=html_data)
+
 # 사용자 입력 받기
 st.title("부동산 데이터 조회")
 si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "전국")
@@ -160,7 +179,7 @@ if data_query_button:
         selected_data['전용면적'] = pd.to_numeric(selected_data['전용면적'], errors='coerce')
         selected_data.dropna(subset=['전용면적'], inplace=True)  # 결측치 삭제
 
-       # 매월 거래량
+        # 매월 거래량
         monthly_transactions = selected_data.groupby(['거래년도', '거래월']).size().reset_index(name='거래량')
         
         # 매월 거래량 시각화
@@ -182,7 +201,6 @@ if data_query_button:
         regional_summary = selected_data.groupby('시군구').size().reset_index(name='거래량')
         regional_summary['총계'] = regional_summary['거래량'].sum()  # 총계 열 추가
     
-
         # 전용면적 범위별 거래량
         bins = [0, 80, 100, 120, 140, float('inf')]
         labels = ['0~80', '80~100', '100~120', '120~140', '140 이상']
@@ -202,34 +220,15 @@ if data_query_button:
         # 전용면적 범위별 거래량 표 추가
         area_summary = area_counts.reset_index()
         area_summary.columns = ['면적 범위', '거래량']
-        area_summary['총계'] = area_summary['거래량'].sum()  # 총계 열 추가
+        area_summary
+               # 전용면적 범위별 거래량 표 추가
+        area_summary = area_counts.reset_index()
+        area_summary.columns = ['면적 범위', '거래량']
         st.dataframe(area_summary)
-        
-        # 지역별 면적 대비 거래량
-        regional_area_counts = selected_data.groupby(['시군구']).size()
-        
-        # 데이터가 비어 있는 경우 처리
-        if regional_area_counts.empty:
-            st.write("지역별 거래량 데이터가 없습니다.")
-        else:
-            # 지역별 면적 대비 거래량 시각화
-            st.header("지역별 면적 대비 거래량 🌍")
-            plt.figure(figsize=(10, 6))
-            plt.bar(regional_area_counts.index, regional_area_counts.values, color='#FFC107', edgecolor='none')  # 색상 변경 및 아웃라인 제거
-            plt.xlabel('시군구', fontsize=14)
-            plt.ylabel('거래량', fontsize=14)
-            plt.xticks(rotation=45)
-            plt.tight_layout()
-            st.pyplot(plt)
-        
-            # 지역별 면적 대비 거래량 표 추가
-            regional_summary = regional_area_counts.reset_index()
-            regional_summary.columns = ['시군구', '거래량']
-            regional_summary['총계'] = regional_summary['거래량'].sum()  # 총계 열 추가
-            st.dataframe(regional_summary)
-        
-        
-        # 거래유형 분석
+
+
+
+         # 거래유형 분석
             transaction_types = selected_data['거래유형'].value_counts()
             
             # 데이터가 비어 있는 경우 처리
@@ -261,4 +260,33 @@ if data_query_button:
         # 결과를 표로 표시
         st.header("법정동별 거래 빈도가 높은 아파트 🌍")
         st.dataframe(top_apartments)
-           
+
+        # HTML 보고서 생성
+        html_report = generate_html_report(selected_data)
+        
+        # HTML 다운로드 버튼
+        if st.button("보고서 다운로드"):
+            with open("report.html", "w", encoding="utf-8") as f:
+                f.write(html_report)
+            st.success("보고서가 'report.html'로 저장되었습니다.")
+
+        # 지역별 거래량 표 추가
+        regional_summary = regional_summary.sort_values(by='거래량', ascending=False)
+        st.dataframe(regional_summary)
+
+        # 지역별 거래량 시각화
+        st.header("지역별 거래량 🌍")
+        plt.figure(figsize=(10, 6))
+        plt.bar(regional_summary['시군구'], regional_summary['거래량'], color='lightgreen')
+        plt.xlabel('시군구', fontsize=14)
+        plt.ylabel('거래량', fontsize=14)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        st.pyplot(plt)
+
+    else:
+        st.warning("모든 필드를 입력하세요.")
+
+# Streamlit 실행
+if __name__ == "__main__":
+    st.title("부동산 데이터 조회 앱")    
