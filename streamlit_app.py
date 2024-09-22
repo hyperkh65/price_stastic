@@ -92,7 +92,7 @@ def generate_html_report(figures, dataframes):
     </head>
     <body>
         <h1>부동산 매매가 분석 보고서</h1>
-        <p>작성자: 투데이즈 (2days)</p>
+        <p>작성자: 투데이즈 ㅣ 아보다 (2days.kr ㅣ aboda.kr)</p>
         <p>연락처: <a href="mailto:hyperkh65@gmail.com">hyperkh65@gmail.com</a></p>
     """
 
@@ -172,7 +172,7 @@ def generate_html_report(figures, dataframes):
 
     html_content += """
         <div class="footer">
-            <p>이 보고서는 자동 생성되었습니다.</p>
+            <p>이 보고서는 아보다 및 투데이즈에서 제작하였으며 무단 복제 및 배포를 금지합니다.</p>
         </div>
     </body>
     </html>
