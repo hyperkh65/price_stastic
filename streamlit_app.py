@@ -38,10 +38,6 @@ class DistrictConverter:
         for district in self.districts:
             if si_do_code == district["si_do_code"]:
                 return district["sigungu"]
-            
-
-from io import BytesIO
-import base64
 
 def generate_html_report(figures, dataframes):
     html_content = """
@@ -85,9 +81,8 @@ def generate_html_report(figures, dataframes):
         <h1>부동산 매매가 분석 보고서</h1>
         <p>작성자: 투데이즈 (2days)</p>
         <p>연락처: <a href="mailto:hyperkh65@gmail.com">hyperkh65@gmail.com</a></p>
-         """
-   
-    
+    """
+
     # 오른쪽 출력 순서에 맞춰 추가
     for title, df in dataframes.items():
         html_content += f"<h2>{title}</h2>"
@@ -131,14 +126,18 @@ def generate_html_report(figures, dataframes):
             });
         });
     </script>
-      html_content += """
+    """
+    
+    html_content += """
         <div class="footer">
             <p>이 보고서는 자동 생성되었습니다.</p>
         </div>
     </body>
     </html>
     """
+    
     return html_content
+
 
 # 다운로드 링크 생성 함수
 def get_download_link(html_content, filename="report.html"):
