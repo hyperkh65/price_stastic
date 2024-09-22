@@ -189,7 +189,7 @@ def get_download_link(html_content, filename="report.html"):
 
 # 사용자 입력 받기
 st.title("부동산 데이터 조회")
-st.sidebar.markdown("### 부동산실거래가보고서")  # 맨 위에 추가
+st.sidebar.markdown("### 📋 부동산실거래가보고서")  # 맨 위에 추가
 si_do_name = st.sidebar.text_input("시/도를 입력하세요 (예: 서울특별시) 또는 '전국' 입력", "서울특별시")
 start_year_month = st.sidebar.text_input("조회 시작 년월 (YYYYMM 형식, 예: 202301)", "202407")
 end_year_month = st.sidebar.text_input("조회 종료 년월 (YYYYMM 형식, 예: 202312)", "202408")
