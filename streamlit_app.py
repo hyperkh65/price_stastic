@@ -62,6 +62,11 @@ def generate_html_report(figures, dataframes):
     <body>
     """
     
+    # 오른쪽 출력 순서에 맞춰 추가
+    for title, df in dataframes.items():
+        html_content += f"<h2>{title}</h2>"
+        html_content += df.to_html(classes='table', border=0, escape=False)
+    
     for title, fig in figures.items():
         img = BytesIO()
         fig.savefig(img, format='png')
@@ -69,10 +74,6 @@ def generate_html_report(figures, dataframes):
         img_base64 = base64.b64encode(img.getvalue()).decode()
         html_content += f"<h2>{title}</h2>"
         html_content += f'<img src="data:image/png;base64,{img_base64}" />'
-    
-    for title, df in dataframes.items():
-        html_content += f"<h2>{title}</h2>"
-        html_content += df.to_html(classes='table', border=0, escape=False)
     
     html_content += "</body></html>"
     return html_content
