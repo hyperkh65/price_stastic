@@ -305,19 +305,17 @@ if data_query_button:
             "법정동별 거래 빈도가 높은 아파트": top_apartments
         }
 
-      # HTML 리포트 생성
+  # HTML 리포트 생성
         html_report = generate_html_report(figures, dataframes)
         
-        # 버튼을 클릭하면 새 창에서 HTML 코드 전체를 열기
-        if st.sidebar.button("HTML 코드 보기"):
-            html_file_path = "temp_report.html"
-            with open(html_file_path, "w") as f:
-                f.write(html_report)
-            
-            # JavaScript를 사용하여 새 창에서 열기
-            st.markdown(f'<a href="{html_file_path}" target="_blank" rel="noopener noreferrer">여기서 HTML 보기</a>', unsafe_allow_html=True)
+        # HTML 내용을 파일로 저장
+        html_file_path = "temp_report.html"
+        with open(html_file_path, "w") as f:
+            f.write(html_report)
+        
+        # 새 창에서 HTML 보기 링크 제공
+        st.sidebar.markdown(f'<a href="data:text/html;base64,{base64.b64encode(html_report.encode()).decode()}" target="_blank" rel="noopener noreferrer">HTML 코드 보기</a>', unsafe_allow_html=True)
         
         # 다운로드 버튼 추가
         st.sidebar.markdown(get_download_link(html_report), unsafe_allow_html=True)
-
 
