@@ -39,9 +39,28 @@ class DistrictConverter:
             if si_do_code == district["si_do_code"]:
                 return district["sigungu"]
 
-# HTML 생성 함수
 def generate_html_report(figures, dataframes):
-    html_content = "<html><head><title>부동산 데이터 분석 리포트</title></head><body>"
+    html_content = """
+    <html>
+    <head>
+        <title>부동산 데이터 분석 리포트</title>
+        <style>
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .table th, .table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+            .table th {
+                background-color: #f2f2f2;
+                text-align: left;
+            }
+        </style>
+    </head>
+    <body>
+    """
     
     for title, fig in figures.items():
         img = BytesIO()
@@ -53,7 +72,7 @@ def generate_html_report(figures, dataframes):
     
     for title, df in dataframes.items():
         html_content += f"<h2>{title}</h2>"
-        html_content += df.to_html()
+        html_content += df.to_html(classes='table', border=0, escape=False)
     
     html_content += "</body></html>"
     return html_content
